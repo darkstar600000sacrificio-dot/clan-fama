@@ -253,12 +253,12 @@
       return;
     }
 
-    if (!data.is_active || !["owner", "manager"].includes(data.role)) {
+    if (!data.is_active || !["owner", "manager", "member"].includes(data.role)) {
       await supabaseClient.auth.signOut();
       currentSession = null;
       currentProfile = null;
       updateAuthButtons();
-      setLoginMessage("Esta versão aceita login por email somente para proprietário e gerentes. O login por Nick dos membros será adicionado depois.", "error");
+      setLoginMessage("Esta conta não está ativa ou não possui uma função válida no clã.", "error");
       return;
     }
 
@@ -266,9 +266,122 @@
     updateAuthButtons();
   }
 
+
+  async function showMemberFameRequest(container) {
+    const heading = document.createElement("div");
+    heading.className = "section-intro";
+    heading.innerHTML = '<p class="eyebrow">ÁREA DO MEMBRO</p><h2>Minha FAMA</h2><p class="muted">Aqui você pode solicitar uma atualização da sua FAMA. O valor só muda depois da aprovação da administração.</p>';
+    container.appendChild(heading);
+
+    const { data: member, error: memberError } = await supabaseClient
+      .from("members")
+      .select("id,slot_number,nickname,fame")
+      .eq("profile_id", currentSession.user.id)
+      .maybeSingle();
+
+    if (memberError || !member) {
+      const message = document.createElement("div");
+      message.className = "empty-state";
+      message.textContent = memberError
+        ? "Não foi possível carregar seus dados de membro: " + memberError.message
+        : "Sua conta não está vinculada a um slot ativo. Procure a administração.";
+      container.appendChild(message);
+      return;
+    }
+
+    const panel = document.createElement("section");
+    panel.className = "admin-section member-request-panel";
+
+    const panelHeading = document.createElement("div");
+    panelHeading.className = "admin-section-heading";
+    const titleWrap = document.createElement("div");
+    titleWrap.innerHTML = '<p class="eyebrow">SEU CADASTRO</p><h3>Solicitar alteração de FAMA</h3>';
+    const slotChip = document.createElement("span");
+    slotChip.className = "number-chip";
+    slotChip.textContent = "Slot " + padSlot(member.slot_number);
+    panelHeading.append(titleWrap, slotChip);
+
+    const currentBox = document.createElement("div");
+    currentBox.className = "global-fame-current";
+    const currentLabel = document.createElement("span");
+    currentLabel.textContent = "Sua FAMA atual";
+    const currentValue = document.createElement("strong");
+    currentValue.textContent = formatFame(member.fame);
+    currentBox.append(currentLabel, currentValue);
+
+    const form = document.createElement("form");
+    form.className = "admin-form admin-form-nested";
+    form.innerHTML = `
+      <div class="form-grid">
+        <div class="form-field form-field-wide">
+          <label for="member-request-fame">Nova FAMA desejada</label>
+          <input id="member-request-fame" name="requested_fame" type="text" inputmode="numeric" maxlength="30" pattern="[0-9]+" placeholder="Digite o valor atualizado" required>
+          <small>Você só pode solicitar um valor maior que sua FAMA atual.</small>
+        </div>
+      </div>
+      <p id="member-request-status" class="form-feedback" role="status" aria-live="polite"></p>
+      <div class="form-actions"><button class="primary-button" type="submit">Enviar solicitação</button></div>
+    `;
+
+    const feedback = form.querySelector("#member-request-status");
+    const submit = form.querySelector('button[type="submit"]');
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const requestedText = form.querySelector("#member-request-fame").value.trim();
+      if (!/^\d{1,30}$/.test(requestedText)) {
+        feedback.textContent = "Informe um número inteiro válido.";
+        feedback.className = "form-feedback error";
+        return;
+      }
+
+      const currentValueBig = BigInt(String(member.fame ?? "0"));
+      const requestedValueBig = BigInt(requestedText);
+      if (requestedValueBig <= currentValueBig) {
+        feedback.textContent = "A nova FAMA precisa ser maior que " + formatFame(member.fame) + ".";
+        feedback.className = "form-feedback error";
+        return;
+      }
+
+      submit.disabled = true;
+      submit.textContent = "Enviando...";
+      feedback.textContent = "Registrando sua solicitação...";
+      feedback.className = "form-feedback";
+
+      const { error } = await supabaseClient
+        .from("fame_requests")
+        .insert({
+          member_id: member.id,
+          old_fame: String(member.fame ?? "0"),
+          requested_fame: requestedText
+        });
+
+      submit.disabled = false;
+      submit.textContent = "Enviar solicitação";
+
+      if (error) {
+        console.error("Erro ao enviar solicitação de FAMA:", error);
+        feedback.textContent = "Não foi possível enviar. " + error.message;
+        feedback.className = "form-feedback error";
+        return;
+      }
+
+      form.reset();
+      feedback.textContent = "Solicitação enviada! Sua FAMA atual só será alterada após a aprovação da administração.";
+      feedback.className = "form-feedback success";
+    });
+
+    panel.append(panelHeading, currentBox, form);
+    container.appendChild(panel);
+  }
+
   async function showRequests() {
     const container = document.getElementById("requests-content");
     container.replaceChildren();
+
+    if (currentProfile && currentProfile.role === "member") {
+      await showMemberFameRequest(container);
+      return;
+    }
 
     const heading = document.createElement("div");
     heading.className = "section-intro";
@@ -873,32 +986,63 @@
       return;
     }
 
-    const email = document.getElementById("login-email").value.trim();
+    const identity = document.getElementById("login-identity").value.trim();
     const password = document.getElementById("login-password").value;
     loginSubmit.disabled = true;
     loginSubmit.textContent = "Entrando...";
     setLoginMessage("Verificando acesso...", "");
 
-    const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+    try {
+      if (identity.includes("@")) {
+        const { data, error } = await supabaseClient.auth.signInWithPassword({
+          email: identity,
+          password
+        });
+        if (error) throw error;
+        currentSession = data.session;
+      } else {
+        const { data, error } = await supabaseClient.functions.invoke(
+          "member-login",
+          { body: { nickname: identity, password } }
+        );
 
-    loginSubmit.disabled = false;
-    loginSubmit.textContent = "Entrar";
+        if (error) {
+          throw new Error(await readFunctionError(error, "Não foi possível entrar. Confira o Nick e a senha."));
+        }
+        if (!data?.session?.access_token || !data?.session?.refresh_token) {
+          throw new Error(data?.error || "Não foi possível entrar. Confira o Nick e a senha.");
+        }
 
-    if (error) {
-      setLoginMessage("Não foi possível entrar. Confira o email e a senha.", "error");
-      console.error("Erro de login Supabase:", error.message);
-      return;
-    }
+        const { data: sessionData, error: sessionError } = await supabaseClient.auth.setSession({
+          access_token: data.session.access_token,
+          refresh_token: data.session.refresh_token
+        });
+        if (sessionError) throw sessionError;
+        currentSession = sessionData.session;
+      }
 
-    currentSession = data.session;
-    await loadCurrentProfile();
+      await loadCurrentProfile();
 
-    if (currentSession && currentProfile) {
-      setLoginMessage("Acesso confirmado.", "success");
-      loginDialog.close();
-      loginForm.reset();
-      await loadPublicData();
-      showView("overview");
+      if (currentSession && currentProfile) {
+        setLoginMessage("Acesso confirmado.", "success");
+        loginDialog.close();
+        loginForm.reset();
+        await loadPublicData();
+        showView(currentProfile.role === "member" ? "requests" : "overview");
+      } else {
+        setLoginMessage("Não foi possível confirmar as permissões desta conta.", "error");
+      }
+    } catch (error) {
+      console.error("Erro de login:", error);
+      setLoginMessage(
+        identity.includes("@")
+          ? "Não foi possível entrar. Confira o email e a senha."
+          : (error.message || "Não foi possível entrar. Confira o Nick e a senha."),
+        "error"
+      );
+    } finally {
+      loginSubmit.disabled = false;
+      loginSubmit.textContent = "Entrar";
     }
   });
 
