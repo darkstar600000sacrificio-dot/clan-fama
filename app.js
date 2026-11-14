@@ -409,22 +409,119 @@
       return;
     }
 
+    let managedHouseIds = new Set();
+    if (currentProfile && currentProfile.role === "manager") {
+      const { data: managedHouses, error: managedHousesError } = await supabaseClient
+        .from("houses")
+        .select("id")
+        .eq("manager_profile_id", currentSession.user.id);
+
+      if (managedHousesError) {
+        console.error("Não foi possível identificar a casa do gerente:", managedHousesError);
+      } else {
+        managedHouseIds = new Set((managedHouses || []).map((house) => house.id));
+      }
+    }
+
     const list = document.createElement("div");
     list.className = "request-list";
     data.forEach((request) => {
       const member = members.find((item) => item.id === request.member_id);
       const card = document.createElement("article");
       card.className = "request-card";
+
       const copy = document.createElement("div");
+      copy.className = "request-card-copy";
       const title = document.createElement("h3");
       title.textContent = "Slot " + (member ? padSlot(member.slot_number) : "—") + " · alteração de FAMA";
       const details = document.createElement("p");
       details.textContent = Number(request.old_fame).toLocaleString("pt-BR") + " → " + Number(request.requested_fame).toLocaleString("pt-BR") + " · " + new Date(request.created_at).toLocaleString("pt-BR");
       copy.append(title, details);
+
+      const side = document.createElement("div");
+      side.className = "request-card-side";
       const status = document.createElement("span");
       status.className = "request-status";
       status.textContent = request.status === "pending" ? "Pendente" : request.status === "approved" ? "Aprovado" : "Recusado";
-      card.append(copy, status);
+      side.appendChild(status);
+
+      const canReview = currentProfile && (
+        currentProfile.role === "owner" ||
+        (currentProfile.role === "manager" && member && member.house_id && managedHouseIds.has(member.house_id))
+      );
+
+      if (request.status === "pending" && canReview) {
+        const actions = document.createElement("div");
+        actions.className = "request-actions";
+
+        const approveButton = document.createElement("button");
+        approveButton.type = "button";
+        approveButton.className = "secondary-button";
+        approveButton.textContent = "Aprovar";
+
+        const rejectButton = document.createElement("button");
+        rejectButton.type = "button";
+        rejectButton.className = "danger-button";
+        rejectButton.textContent = "Recusar";
+
+        const feedback = document.createElement("p");
+        feedback.className = "request-card-feedback";
+        feedback.setAttribute("role", "status");
+        feedback.setAttribute("aria-live", "polite");
+
+        async function reviewRequest(decision, button) {
+          const isApproval = decision === "approve";
+          const actionLabel = isApproval ? "aprovar" : "recusar";
+          const confirmation = window.confirm(
+            "Deseja " + actionLabel + " a solicitação do slot " +
+            (member ? padSlot(member.slot_number) : "—") + "?"
+          );
+          if (!confirmation) return;
+
+          approveButton.disabled = true;
+          rejectButton.disabled = true;
+          button.textContent = isApproval ? "Aprovando..." : "Recusando...";
+          feedback.textContent = "Salvando decisão...";
+          feedback.className = "request-card-feedback";
+
+          const { data: result, error: reviewError } = await supabaseClient.rpc(
+            "review_fame_request",
+            {
+              p_request_id: request.id,
+              p_decision: decision
+            }
+          );
+
+          if (reviewError || !result?.success) {
+            const message = reviewError
+              ? reviewError.message
+              : (result?.error || "O servidor não confirmou a decisão.");
+            feedback.textContent = "Não foi possível concluir: " + message;
+            feedback.className = "request-card-feedback error";
+            approveButton.disabled = false;
+            rejectButton.disabled = false;
+            approveButton.textContent = "Aprovar";
+            rejectButton.textContent = "Recusar";
+            return;
+          }
+
+          feedback.textContent = isApproval
+            ? "Solicitação aprovada e FAMA atualizada."
+            : "Solicitação recusada.";
+          feedback.className = "request-card-feedback success";
+          await loadPublicData();
+          await showRequests();
+        }
+
+        approveButton.addEventListener("click", () => reviewRequest("approve", approveButton));
+        rejectButton.addEventListener("click", () => reviewRequest("reject", rejectButton));
+        actions.append(approveButton, rejectButton);
+        side.append(actions);
+        card.append(copy, side, feedback);
+      } else {
+        card.append(copy, side);
+      }
+
       list.appendChild(card);
     });
     container.appendChild(list);
