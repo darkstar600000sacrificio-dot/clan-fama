@@ -7,6 +7,7 @@
   <meta name="description" content="Painel público de organização do clã Sacrificio.">
   <title>SACRIFICIO | Painel do Clã</title>
   <link rel="stylesheet" href="./style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./app.js" defer></script>
 </head>
 <body>
@@ -116,12 +117,12 @@
 
       <section class="view" id="view-requests" data-title="Requests" hidden>
         <div class="section-intro"><p class="eyebrow">SOLICITAÇÕES</p><h2>Requests</h2><p class="muted">Pedidos de alteração de FAMA enviados pelos membros.</p></div>
-        <div class="locked-panel"><div class="lock-symbol">⌑</div><h3>Área de acesso restrito</h3><p class="muted">Faça login para consultar e analisar solicitações. A autenticação será conectada ao Supabase na próxima etapa.</p><button class="primary-button" type="button" data-login>Entrar</button></div>
+        <div id="requests-content"><div class="locked-panel"><div class="lock-symbol">⌑</div><h3>Área de acesso restrito</h3><p class="muted">Entre com sua conta de proprietário ou gerente para consultar as solicitações autorizadas.</p><button class="primary-button" type="button" data-login>Entrar</button></div></div>
       </section>
 
       <section class="view" id="view-settings" data-title="Configurações" hidden>
         <div class="section-intro"><p class="eyebrow">ADMINISTRAÇÃO</p><h2>Configurações</h2><p class="muted">Gerenciamento de contas, casas, slots e permissões.</p></div>
-        <div class="locked-panel"><div class="lock-symbol">⌑</div><h3>Área de acesso restrito</h3><p class="muted">Somente o proprietário poderá acessar as configurações administrativas. O login será ativado na etapa de integração.</p><button class="primary-button" type="button" data-login>Entrar</button></div>
+        <div id="settings-content"><div class="locked-panel"><div class="lock-symbol">⌑</div><h3>Área de acesso restrito</h3><p class="muted">Somente o proprietário poderá acessar as configurações administrativas.</p><button class="primary-button" type="button" data-login>Entrar</button></div></div>
       </section>
 
       <footer class="page-footer"><span>SACRIFICIO</span><span>PAINEL DO CLÃ · VERSÃO INICIAL</span></footer>
@@ -129,10 +130,17 @@
   </div>
 
   <dialog class="notice-dialog" id="login-dialog">
-    <div class="dialog-top"><span class="eyebrow">AUTENTICAÇÃO</span><button class="icon-button" type="button" data-close aria-label="Fechar">×</button></div>
-    <h2>Login em preparação</h2>
-    <p class="muted">A autenticação ainda não está conectada. Na próxima etapa vamos integrar o Supabase para que membros, gerentes e proprietário entrem com suas próprias credenciais.</p>
-    <button class="primary-button full-button" type="button" data-close>Entendi</button>
+    <div class="dialog-top"><span class="eyebrow">ACESSO ADMINISTRATIVO</span><button class="icon-button" type="button" data-close aria-label="Fechar">×</button></div>
+    <h2>Entrar no SACRIFICIO</h2>
+    <p class="muted login-description">Login por email disponível para o proprietário e gerentes. O acesso dos membros por Nick será ativado em uma etapa posterior.</p>
+    <form id="login-form" class="login-form">
+      <label for="login-email">Email</label>
+      <input id="login-email" name="email" type="email" autocomplete="username" placeholder="seu@email.com" required>
+      <label for="login-password">Senha</label>
+      <input id="login-password" name="password" type="password" autocomplete="current-password" placeholder="Sua senha" required>
+      <p id="login-status" class="login-status" role="status" aria-live="polite"></p>
+      <button class="primary-button full-button" id="login-submit" type="submit">Entrar</button>
+    </form>
   </dialog>
 </body>
 </html>
