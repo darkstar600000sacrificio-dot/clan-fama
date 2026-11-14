@@ -198,3 +198,44 @@ button { color: inherit; }
 
 /* Honor the HTML hidden attribute even on grid form fields. */
 .form-field[hidden] { display: none !important; }
+
+
+/* Owner administration: clan FAMA, member correction and removal */
+.admin-section { margin-top: 18px; padding: 20px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
+.admin-section-heading { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 10px; }
+.admin-section-heading h3 { margin: 5px 0 0; font-size: 18px; }
+.admin-section-description { margin: 0 0 14px; font-size: 12px; }
+.global-fame-current { padding: 16px 17px; display: grid; gap: 6px; border: 1px solid var(--border-soft); border-radius: 9px; background: #111317; }
+.global-fame-current span { color: var(--muted); font-size: 11px; }
+.global-fame-current strong { color: var(--text); font-size: clamp(24px, 4vw, 32px); letter-spacing: -.6px; }
+.admin-form-nested { margin-top: 14px; padding: 0; border: 0; background: transparent; }
+.admin-members-list { display: grid; gap: 10px; }
+.admin-member-card { padding: 15px; border: 1px solid var(--border-soft); border-radius: 9px; background: #14161a; }
+.admin-member-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.admin-member-identity { min-width: 0; display: grid; gap: 4px; }
+.admin-member-identity strong { color: var(--text); font-size: 14px; overflow-wrap: anywhere; }
+.admin-member-identity span { color: var(--muted); font-size: 10px; }
+.admin-member-fame { color: #e4e7eb; font-size: 12px; font-weight: 700; white-space: nowrap; }
+.admin-member-actions { margin-top: 13px; display: grid; gap: 10px; }
+.member-fame-form { display: grid; grid-template-columns: minmax(130px, .9fr) minmax(180px, 1.5fr) auto; align-items: end; gap: 9px; }
+.member-fame-form label { display: grid; gap: 6px; color: var(--muted); font-size: 10px; }
+.member-fame-form input { width: 100%; min-width: 0; min-height: 38px; padding: 0 10px; border: 1px solid var(--border); border-radius: 7px; outline: none; background: #101216; color: var(--text); font-size: 12px; }
+.member-fame-form input:focus { border-color: #e8eaee; }
+.secondary-button, .danger-button { min-height: 38px; padding: 0 12px; border: 1px solid var(--border); border-radius: 7px; background: #272b31; color: var(--text); font-size: 11px; font-weight: 700; cursor: pointer; }
+.secondary-button:hover { background: #343941; }
+.danger-button { justify-self: end; border-color: #8f5555; background: #2b1c1e; color: #ffd0d0; }
+.danger-button:hover { background: #422427; }
+.secondary-button:disabled, .danger-button:disabled { opacity: .55; cursor: wait; }
+.create-account-details { border: 1px solid var(--border-soft); border-radius: 9px; background: #14161a; }
+.create-account-details > summary { min-height: 64px; padding: 12px 15px; display: flex; align-items: center; justify-content: space-between; gap: 14px; cursor: pointer; list-style: none; }
+.create-account-details > summary::-webkit-details-marker { display: none; }
+.create-account-details > summary > span:first-child { display: grid; gap: 4px; }
+.create-account-details > summary .eyebrow { margin: 0; }
+.create-account-details > summary strong { font-size: 15px; }
+.create-account-details[open] > summary { border-bottom: 1px solid var(--border-soft); }
+.create-account-details .admin-form-nested { padding: 0 15px 16px; }
+@media (max-width: 760px) {
+  .member-fame-form { grid-template-columns: 1fr; }
+  .member-fame-form button { width: 100%; }
+  .danger-button { width: 100%; justify-self: stretch; }
+}
