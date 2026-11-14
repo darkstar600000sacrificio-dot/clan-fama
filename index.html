@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101114">
+  <meta name="description" content="Painel público de organização do clã FAMA.">
+  <title>CLAN FAMA</title>
+  <link rel="stylesheet" href="./style.css">
+  <script src="./app.js" defer></script>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a class="brand" href="#visao-geral" aria-label="CLAN FAMA - início">
+        <span class="brand-mark">CF</span>
+        <span class="brand-copy">
+          <strong>CLAN FAMA</strong>
+          <small>PAINEL DO CLÃ</small>
+        </span>
+      </a>
+
+      <div class="sidebar-label">NAVEGAÇÃO</div>
+      <nav class="main-nav" aria-label="Navegação principal">
+        <button class="nav-link active" type="button" data-view="overview">
+          <span class="nav-icon">▦</span><span>Visão geral</span>
+        </button>
+        <button class="nav-link" type="button" data-view="members">
+          <span class="nav-icon">▤</span><span>Membros</span>
+        </button>
+        <button class="nav-link" type="button" data-view="requests">
+          <span class="nav-icon">↗</span><span>Requests</span>
+          <span class="nav-lock">LOGIN</span>
+        </button>
+        <button class="nav-link" type="button" data-view="settings">
+          <span class="nav-icon">⚙</span><span>Configurações</span>
+          <span class="nav-lock">LOGIN</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-bottom">
+        <div class="public-state"><span class="state-dot"></span>Área pública</div>
+        <button class="login-button" type="button" data-login>
+          <span>↪</span> Entrar
+        </button>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <div>
+          <div class="eyebrow">SISTEMA DE GERENCIAMENTO</div>
+          <h1 id="page-title">Visão geral</h1>
+        </div>
+        <div class="topbar-right">
+          <span class="public-badge"><span class="state-dot"></span> Visualização pública</span>
+          <button class="top-login" type="button" data-login>Entrar</button>
+        </div>
+      </header>
+
+      <section class="view active" id="view-overview" data-title="Visão geral">
+        <div class="welcome-panel">
+          <div>
+            <p class="eyebrow">BEM-VINDO AO</p>
+            <h2>CLAN <span>FAMA</span></h2>
+            <p class="muted welcome-copy">Painel de organização, casas e integrantes do clã.</p>
+          </div>
+          <div class="panel-tag">ESTRUTURA DO CLÃ <strong>50 SLOTS</strong></div>
+        </div>
+
+        <div class="stats-grid">
+          <article class="stat-card"><span class="stat-label">Slots totais</span><strong>50</strong><small>Estrutura completa</small></article>
+          <article class="stat-card"><span class="stat-label">Casas</span><strong>04</strong><small>Quatro cavaleiros</small></article>
+          <article class="stat-card"><span class="stat-label">Slots especiais</span><strong>05</strong><small>Rotativos e especiais</small></article>
+          <article class="stat-card"><span class="stat-label">Gerentes</span><strong>04</strong><small>Uma posição por casa</small></article>
+        </div>
+
+        <div class="section-heading">
+          <div><p class="eyebrow">ORGANIZAÇÃO</p><h2>Casas do clã</h2></div>
+          <button class="text-button" type="button" data-go="members">Ver todos os slots <span>→</span></button>
+        </div>
+        <div class="house-grid" id="overview-houses"></div>
+
+        <div class="bottom-grid">
+          <article class="info-card">
+            <div class="card-heading"><div><p class="eyebrow">VAGAS 41–45</p><h3>Rotativos e especiais</h3></div><span class="number-chip">05</span></div>
+            <p class="muted">Cinco posições reservadas para membros especiais ou rotativos, sob sua administração.</p>
+          </article>
+          <article class="info-card owner-card">
+            <div class="card-heading"><div><p class="eyebrow">SLOT 50</p><h3>Proprietário</h3></div><span class="number-chip">50</span></div>
+            <p class="owner-name">Lux_Nihil</p>
+            <p class="muted">Conta principal do clã.</p>
+          </article>
+        </div>
+        <p class="footnote">Esta é a estrutura inicial do site. Os dados reais serão conectados ao Supabase na próxima etapa.</p>
+      </section>
+
+      <section class="view" id="view-members" data-title="Membros" hidden>
+        <div class="section-intro">
+          <p class="eyebrow">ORGANIZAÇÃO DO CLÃ</p>
+          <h2>Membros e slots</h2>
+          <p class="muted">As casas e suas posições podem ser consultadas publicamente.</p>
+        </div>
+        <div class="filter-row">
+          <label class="search-box"><span>⌕</span><input id="member-search" type="search" placeholder="Buscar por casa, slot ou função" autocomplete="off"></label>
+          <span class="result-count" id="member-count">50 posições</span>
+        </div>
+        <div class="table-wrap">
+          <table class="members-table">
+            <thead><tr><th>Slot</th><th>Casa / categoria</th><th>Função</th><th>Integrante</th><th>Estado</th></tr></thead>
+            <tbody id="members-table-body"></tbody>
+          </table>
+        </div>
+        <p class="footnote">A lista mostra a distribuição planejada. A sincronização com o banco ainda será ativada.</p>
+      </section>
+
+      <section class="view" id="view-requests" data-title="Requests" hidden>
+        <div class="section-intro"><p class="eyebrow">SOLICITAÇÕES</p><h2>Requests</h2><p class="muted">Pedidos de alteração de FAMA enviados pelos membros.</p></div>
+        <div class="locked-panel"><div class="lock-symbol">⌑</div><h3>Área de acesso restrito</h3><p class="muted">Faça login para consultar e analisar solicitações. A autenticação será conectada ao Supabase na próxima etapa.</p><button class="primary-button" type="button" data-login>Entrar</button></div>
+      </section>
+
+      <section class="view" id="view-settings" data-title="Configurações" hidden>
+        <div class="section-intro"><p class="eyebrow">ADMINISTRAÇÃO</p><h2>Configurações</h2><p class="muted">Gerenciamento de contas, casas, slots e permissões.</p></div>
+        <div class="locked-panel"><div class="lock-symbol">⌑</div><h3>Área de acesso restrito</h3><p class="muted">Somente o proprietário poderá acessar as configurações administrativas. O login será ativado na etapa de integração.</p><button class="primary-button" type="button" data-login>Entrar</button></div>
+      </section>
+
+      <footer class="page-footer"><span>CLAN FAMA</span><span>PAINEL DO CLÃ · VERSÃO INICIAL</span></footer>
+    </main>
+  </div>
+
+  <dialog class="notice-dialog" id="login-dialog">
+    <div class="dialog-top"><span class="eyebrow">AUTENTICAÇÃO</span><button class="icon-button" type="button" data-close aria-label="Fechar">×</button></div>
+    <h2>Login em preparação</h2>
+    <p class="muted">A autenticação ainda não está conectada. Na próxima etapa vamos integrar o Supabase para que membros, gerentes e proprietário entrem com suas próprias credenciais.</p>
+    <button class="primary-button full-button" type="button" data-close>Entendi</button>
+  </dialog>
+</body>
+</html>
