@@ -130,12 +130,12 @@
   </div>
 
   <dialog class="notice-dialog" id="login-dialog">
-    <div class="dialog-top"><span class="eyebrow">ACESSO ADMINISTRATIVO</span><button class="icon-button" type="button" data-close aria-label="Fechar">×</button></div>
+    <div class="dialog-top"><span class="eyebrow">ACESSO AO CLÃ</span><button class="icon-button" type="button" data-close aria-label="Fechar">×</button></div>
     <h2>Entrar no SACRIFICIO</h2>
-    <p class="muted login-description">Login por email disponível para o proprietário e gerentes. O acesso dos membros por Nick será ativado em uma etapa posterior.</p>
+    <p class="muted login-description">Proprietário e gerentes entram com email. Membros entram com o Nick do jogo.</p>
     <form id="login-form" class="login-form">
-      <label for="login-email">Email</label>
-      <input id="login-email" name="email" type="email" autocomplete="username" placeholder="seu@email.com" required>
+      <label for="login-identity">Email ou Nick</label>
+      <input id="login-identity" name="identity" type="text" autocomplete="username" placeholder="Seu email ou Nick do jogo" required>
       <label for="login-password">Senha</label>
       <input id="login-password" name="password" type="password" autocomplete="current-password" placeholder="Sua senha" required>
       <p id="login-status" class="login-status" role="status" aria-live="polite"></p>
