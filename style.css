@@ -140,3 +140,29 @@ button { color: inherit; }
   .text-button { font-size: 10px; }
   .page-footer { font-size: 8px; }
 }
+
+
+/* Supabase authentication */
+.login-form { display: grid; gap: 9px; margin-top: 18px; }
+.login-form label { color: #dfe2e7; font-size: 12px; font-weight: 650; }
+.login-form input { width: 100%; min-height: 43px; padding: 0 12px; border: 1px solid var(--border); border-radius: 8px; outline: none; background: #111317; color: var(--text); }
+.login-form input:focus { border-color: #e4e7eb; box-shadow: 0 0 0 3px #ffffff12; }
+.login-form input::placeholder { color: #737984; }
+.login-status { min-height: 18px; margin: 2px 0 4px; color: #d7dbe1; font-size: 11px; line-height: 1.5; }
+.login-status.error { color: #ff9898; }
+.login-status.success { color: #a8e6bd; }
+.primary-button:disabled { opacity: .65; cursor: wait; transform: none; }
+.auth-user { color: var(--muted); font-size: 11px; }
+.slot-pill.occupied { border-color: #d4d8df; background: #343941; color: #fff; }
+.request-list { display: grid; gap: 12px; }
+.request-card { padding: 16px; display: flex; justify-content: space-between; align-items: center; gap: 16px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
+.request-card h3 { margin: 0 0 6px; font-size: 14px; }
+.request-card p { margin: 0; color: var(--muted); font-size: 11px; line-height: 1.6; }
+.request-status { padding: 6px 9px; border: 1px solid var(--border); border-radius: 7px; color: #e6e8ec; font-size: 10px; white-space: nowrap; }
+.empty-state { padding: 28px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); color: var(--muted); text-align: center; font-size: 13px; }
+.settings-summary { padding: 20px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
+.settings-summary h3 { margin: 0 0 7px; }
+.settings-summary p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.6; }
+@media (max-width: 650px) {
+  .request-card { align-items: flex-start; flex-direction: column; }
+}
