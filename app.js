@@ -349,7 +349,7 @@
 
   async function showSettings() {
     const container = document.getElementById("settings-content");
-    container.innerHTML = \`
+    container.innerHTML = `
       <section class="settings-summary settings-intro">
         <h3>Administração do SACRIFICIO</h3>
         <p>Criação de contas, controle das vagas, correções de FAMA e remoção de integrantes. Estas ferramentas são exclusivas do proprietário.</p>
@@ -439,7 +439,7 @@
         </details>
       </section>
       <p id="admin-action-status" class="form-feedback" role="status" aria-live="polite"></p>
-    \`;
+    `;
 
     if (!supabaseClient || !currentSession || !currentProfile || currentProfile.role !== "owner") {
       return;
