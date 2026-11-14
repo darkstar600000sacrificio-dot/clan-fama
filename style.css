@@ -156,9 +156,16 @@ button { color: inherit; }
 .slot-pill.occupied { border-color: #d4d8df; background: #343941; color: #fff; }
 .request-list { display: grid; gap: 12px; }
 .request-card { padding: 16px; display: flex; justify-content: space-between; align-items: center; gap: 16px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
+.request-card-copy { min-width: 0; }
 .request-card h3 { margin: 0 0 6px; font-size: 14px; }
 .request-card p { margin: 0; color: var(--muted); font-size: 11px; line-height: 1.6; }
+.request-card-side { display: flex; align-items: center; justify-content: flex-end; gap: 9px; flex-wrap: wrap; }
 .request-status { padding: 6px 9px; border: 1px solid var(--border); border-radius: 7px; color: #e6e8ec; font-size: 10px; white-space: nowrap; }
+.request-actions { display: flex; align-items: center; gap: 7px; }
+.request-actions .secondary-button, .request-actions .danger-button { min-height: 32px; }
+.request-card-feedback { flex-basis: 100%; margin: 0; text-align: right; font-size: 10px; }
+.request-card-feedback.error { color: #ff9898; }
+.request-card-feedback.success { color: #a8e6bd; }
 .empty-state { padding: 28px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); color: var(--muted); text-align: center; font-size: 13px; }
 .settings-summary { padding: 20px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
 .settings-summary h3 { margin: 0 0 7px; }
