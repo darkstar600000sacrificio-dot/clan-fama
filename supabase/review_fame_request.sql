@@ -88,7 +88,7 @@ begin
     end if;
 
     update public.members
-    set fame = v_request.requested_fame
+    set fame = v_requested_fame
     where id = v_member.id;
 
     update public.clan_stats
