@@ -195,3 +195,6 @@ button { color: inherit; }
   .form-field-wide { grid-column: auto; }
   .form-actions .primary-button { width: 100%; }
 }
+
+/* Honor the HTML hidden attribute even on grid form fields. */
+.form-field[hidden] { display: none !important; }
