@@ -317,72 +317,347 @@
     container.appendChild(list);
   }
 
+  function formatFame(value) {
+    try {
+      return BigInt(String(value ?? "0")).toLocaleString("pt-BR");
+    } catch (_) {
+      return String(value ?? "0");
+    }
+  }
+
+  function setAdminFeedback(message, type) {
+    const status = document.getElementById("admin-action-status");
+    if (!status) return;
+    status.textContent = message || "";
+    status.className = "form-feedback" + (type ? " " + type : "");
+  }
+
+  async function readFunctionError(error, fallback) {
+    let message = fallback;
+    try {
+      if (error && error.context && typeof error.context.clone === "function") {
+        const payload = await error.context.clone().json();
+        if (payload && payload.error) message = payload.error;
+      } else if (error && error.message) {
+        message = error.message;
+      }
+    } catch (_) {
+      if (error && error.message) message = error.message;
+    }
+    return message;
+  }
+
   async function showSettings() {
     const container = document.getElementById("settings-content");
-    container.innerHTML = `
-      <div class="settings-summary settings-intro">
-        <h3>Gerenciar contas do clã</h3>
-        <p>Crie acessos e vincule cada pessoa a um dos slots disponíveis. Membros entram por Nick futuramente; gerentes entram por email.</p>
-      </div>
-      <form id="create-account-form" class="admin-form">
-        <div class="admin-form-heading">
-          <div><p class="eyebrow">NOVO CADASTRO</p><h3>Criar conta</h3></div>
-          <span class="number-chip">+</span>
+    container.innerHTML = \`
+      <section class="settings-summary settings-intro">
+        <h3>Administração do SACRIFICIO</h3>
+        <p>Criação de contas, controle das vagas, correções de FAMA e remoção de integrantes. Estas ferramentas são exclusivas do proprietário.</p>
+      </section>
+
+      <section class="admin-section">
+        <div class="admin-section-heading">
+          <div><p class="eyebrow">CONTROLE DO CLÃ</p><h3>FAMA global</h3></div>
+          <span class="number-chip">Σ</span>
         </div>
-
-        <div class="form-grid">
-          <div class="form-field">
-            <label for="create-role">Tipo de conta</label>
-            <select id="create-role" name="role" required>
-              <option value="member">Membro</option>
-              <option value="manager">Gerente</option>
-            </select>
-          </div>
-
-          <div class="form-field">
-            <label for="create-nickname">Nick do jogo</label>
-            <input id="create-nickname" name="nickname" type="text" minlength="2" maxlength="32" autocomplete="off" placeholder="Ex.: Jogador123" required>
-          </div>
-
-          <div class="form-field form-field-wide" id="create-email-field" hidden>
-            <label for="create-email">Email do gerente</label>
-            <input id="create-email" name="email" type="email" autocomplete="off" placeholder="gerente@email.com">
-            <small>O email será usado para entrar na conta de gerente.</small>
-          </div>
-
-          <div class="form-field">
-            <label for="create-password">Senha inicial</label>
-            <input id="create-password" name="password" type="password" minlength="10" autocomplete="new-password" placeholder="Mínimo de 10 caracteres" required>
-          </div>
-
-          <div class="form-field">
-            <label for="create-discord">Discord (opcional)</label>
-            <input id="create-discord" name="discord_tag" type="text" maxlength="100" autocomplete="off" placeholder="Usuário do Discord">
-          </div>
-
-          <div class="form-field form-field-wide">
-            <label for="create-slot">Slot disponível</label>
-            <select id="create-slot" name="slot_number" required></select>
-            <small id="create-slot-info">Escolha primeiro o tipo de conta.</small>
-          </div>
+        <div class="global-fame-current">
+          <span>FAMA acumulada do SACRIFICIO</span>
+          <strong id="global-fame-current">Carregando...</strong>
         </div>
+        <form id="global-fame-form" class="admin-form admin-form-nested">
+          <div class="form-grid">
+            <div class="form-field form-field-wide">
+              <label for="global-fame-value">Novo total global</label>
+              <input id="global-fame-value" name="new_total" type="text" inputmode="numeric" maxlength="30" pattern="[0-9]+" placeholder="Digite o total correto" required>
+              <small>Este ajuste altera somente o total global, sem adicionar FAMA a nenhum integrante.</small>
+            </div>
+            <div class="form-field form-field-wide">
+              <label for="global-fame-reason">Motivo da correção</label>
+              <input id="global-fame-reason" name="reason" type="text" maxlength="500" placeholder="Explique o motivo do ajuste" required>
+            </div>
+          </div>
+          <div class="form-actions"><button class="primary-button" id="global-fame-submit" type="submit">Corrigir FAMA global</button></div>
+        </form>
+      </section>
 
-        <div class="admin-form-note">
-          <strong>Segurança das credenciais</strong>
-          <span>A senha será enviada diretamente à função segura do Supabase Auth. Ela não será gravada em uma tabela nem exibida depois do cadastro.</span>
+      <section class="admin-section">
+        <div class="admin-section-heading">
+          <div><p class="eyebrow">CONTAS CADASTRADAS</p><h3>Integrantes do clã</h3></div>
+          <span class="number-chip" id="admin-member-total">—</span>
         </div>
+        <p class="muted admin-section-description">Você pode corrigir a FAMA individual ou remover qualquer integrante, inclusive gerentes. A FAMA global não será reduzida quando alguém sair.</p>
+        <div id="admin-members-list" class="admin-members-list"></div>
+      </section>
 
-        <p id="create-account-status" class="form-feedback" role="status" aria-live="polite"></p>
-        <div class="form-actions">
-          <button class="primary-button" id="create-account-submit" type="submit">Criar conta e ocupar slot</button>
-        </div>
-      </form>
-    `;
+      <section class="admin-section">
+        <details class="create-account-details" open>
+          <summary>
+            <span><p class="eyebrow">NOVO CADASTRO</p><strong>Criar conta</strong></span>
+            <span class="number-chip">+</span>
+          </summary>
+          <form id="create-account-form" class="admin-form admin-form-nested">
+            <div class="form-grid">
+              <div class="form-field">
+                <label for="create-role">Tipo de conta</label>
+                <select id="create-role" name="role" required>
+                  <option value="member">Membro</option>
+                  <option value="manager">Gerente</option>
+                </select>
+              </div>
+              <div class="form-field">
+                <label for="create-nickname">Nick do jogo</label>
+                <input id="create-nickname" name="nickname" type="text" minlength="2" maxlength="32" autocomplete="off" placeholder="Ex.: Jogador123" required>
+              </div>
+              <div class="form-field form-field-wide" id="create-email-field" hidden>
+                <label for="create-email">Email do gerente</label>
+                <input id="create-email" name="email" type="email" autocomplete="off" placeholder="gerente@email.com">
+                <small>O email será usado para entrar na conta de gerente.</small>
+              </div>
+              <div class="form-field">
+                <label for="create-password">Senha inicial</label>
+                <input id="create-password" name="password" type="password" minlength="10" autocomplete="new-password" placeholder="Mínimo de 10 caracteres" required>
+              </div>
+              <div class="form-field">
+                <label for="create-discord">Discord (opcional)</label>
+                <input id="create-discord" name="discord_tag" type="text" maxlength="100" autocomplete="off" placeholder="Usuário do Discord">
+              </div>
+              <div class="form-field form-field-wide">
+                <label for="create-slot">Slot disponível</label>
+                <select id="create-slot" name="slot_number" required></select>
+                <small id="create-slot-info">Escolha primeiro o tipo de conta.</small>
+              </div>
+            </div>
+            <div class="admin-form-note">
+              <strong>Segurança das credenciais</strong>
+              <span>A senha será enviada diretamente à função segura do Supabase Auth. Ela não será gravada em uma tabela nem exibida depois do cadastro.</span>
+            </div>
+            <p id="create-account-status" class="form-feedback" role="status" aria-live="polite"></p>
+            <div class="form-actions">
+              <button class="primary-button" id="create-account-submit" type="submit">Criar conta e ocupar slot</button>
+            </div>
+          </form>
+        </details>
+      </section>
+      <p id="admin-action-status" class="form-feedback" role="status" aria-live="polite"></p>
+    \`;
 
     if (!supabaseClient || !currentSession || !currentProfile || currentProfile.role !== "owner") {
       return;
     }
 
+    // FAMA global
+    const globalCurrent = document.getElementById("global-fame-current");
+    const globalInput = document.getElementById("global-fame-value");
+    const globalForm = document.getElementById("global-fame-form");
+    const globalSubmit = document.getElementById("global-fame-submit");
+
+    const { data: stats, error: statsError } = await supabaseClient
+      .from("clan_stats")
+      .select("global_fame")
+      .eq("id", 1)
+      .maybeSingle();
+
+    if (statsError || !stats) {
+      globalCurrent.textContent = "Não foi possível carregar";
+      setAdminFeedback("Erro ao consultar a FAMA global: " + (statsError?.message || "registro não encontrado."), "error");
+    } else {
+      globalCurrent.textContent = formatFame(stats.global_fame);
+      globalForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const newTotal = globalInput.value.trim();
+        const reason = document.getElementById("global-fame-reason").value.trim();
+
+        if (!/^\d{1,30}$/.test(newTotal) || !reason) {
+          setAdminFeedback("Informe um total inteiro válido e o motivo da correção.", "error");
+          return;
+        }
+
+        if (!window.confirm("Confirma definir a FAMA global do SACRIFICIO como " + formatFame(newTotal) + "? Isso não altera a FAMA individual de ninguém.")) {
+          return;
+        }
+
+        globalSubmit.disabled = true;
+        globalSubmit.textContent = "Salvando...";
+        setAdminFeedback("Aplicando correção global...", "");
+
+        const { error } = await supabaseClient.rpc("admin_adjust_global_fame", {
+          p_new_total: newTotal,
+          p_reason: reason
+        });
+
+        globalSubmit.disabled = false;
+        globalSubmit.textContent = "Corrigir FAMA global";
+
+        if (error) {
+          console.error("Erro ao corrigir FAMA global:", error);
+          setAdminFeedback("Não foi possível corrigir a FAMA global: " + error.message, "error");
+          return;
+        }
+
+        await showSettings();
+        setAdminFeedback("FAMA global atualizada com sucesso.", "success");
+      });
+    }
+
+    // Lista de integrantes ocupados
+    const list = document.getElementById("admin-members-list");
+    const occupiedMembers = members
+      .filter((member) => member.is_occupied && Number(member.slot_number) !== 50)
+      .sort((a, b) => a.slot_number - b.slot_number);
+
+    document.getElementById("admin-member-total").textContent = String(occupiedMembers.length);
+
+    if (occupiedMembers.length === 0) {
+      const empty = document.createElement("div");
+      empty.className = "empty-state";
+      empty.textContent = "Ainda não existem membros ou gerentes cadastrados.";
+      list.appendChild(empty);
+    }
+
+    occupiedMembers.forEach((member) => {
+      const info = getSlotInfo(member);
+      const card = document.createElement("article");
+      card.className = "admin-member-card";
+
+      const top = document.createElement("div");
+      top.className = "admin-member-top";
+
+      const identity = document.createElement("div");
+      identity.className = "admin-member-identity";
+
+      const name = document.createElement("strong");
+      name.textContent = member.nickname || "Integrante sem Nick";
+
+      const meta = document.createElement("span");
+      meta.textContent = "Slot " + padSlot(member.slot_number) + " · " + info.group + " · " + info.role;
+
+      identity.append(name, meta);
+
+      const fame = document.createElement("span");
+      fame.className = "admin-member-fame";
+      fame.textContent = formatFame(member.fame) + " FAMA";
+
+      top.append(identity, fame);
+
+      const actions = document.createElement("div");
+      actions.className = "admin-member-actions";
+
+      const fameForm = document.createElement("form");
+      fameForm.className = "member-fame-form";
+
+      const newFameLabel = document.createElement("label");
+      newFameLabel.textContent = "Corrigir FAMA";
+      const newFameInput = document.createElement("input");
+      newFameInput.type = "text";
+      newFameInput.inputMode = "numeric";
+      newFameInput.maxLength = 30;
+      newFameInput.pattern = "[0-9]+";
+      newFameInput.placeholder = "Novo valor";
+      newFameInput.required = true;
+      newFameInput.setAttribute("aria-label", "Nova FAMA de " + (member.nickname || "integrante"));
+      const reasonInput = document.createElement("input");
+      reasonInput.type = "text";
+      reasonInput.maxLength = 500;
+      reasonInput.placeholder = "Motivo da correção";
+      reasonInput.required = true;
+      reasonInput.setAttribute("aria-label", "Motivo da correção de FAMA");
+      const adjustButton = document.createElement("button");
+      adjustButton.type = "submit";
+      adjustButton.className = "secondary-button";
+      adjustButton.textContent = "Salvar FAMA";
+
+      newFameLabel.appendChild(newFameInput);
+      fameForm.append(newFameLabel, reasonInput, adjustButton);
+
+      fameForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const newValue = newFameInput.value.trim();
+        const reason = reasonInput.value.trim();
+
+        if (!/^\d{1,30}$/.test(newValue) || !reason) {
+          setAdminFeedback("Informe uma FAMA inteira válida e o motivo da correção.", "error");
+          return;
+        }
+
+        if (BigInt(newValue) < BigInt(String(member.fame || "0"))) {
+          const confirmed = window.confirm(
+            "Você está diminuindo a FAMA de " + (member.nickname || "este integrante") +
+            ". A FAMA global também diminuirá pela diferença. Deseja continuar?"
+          );
+          if (!confirmed) return;
+        }
+
+        adjustButton.disabled = true;
+        adjustButton.textContent = "Salvando...";
+
+        const { error } = await supabaseClient.rpc("admin_adjust_member_fame", {
+          p_member_id: member.id,
+          p_new_fame: newValue,
+          p_reason: reason
+        });
+
+        if (error) {
+          console.error("Erro ao corrigir FAMA individual:", error);
+          setAdminFeedback("Não foi possível corrigir a FAMA: " + error.message, "error");
+          adjustButton.disabled = false;
+          adjustButton.textContent = "Salvar FAMA";
+          return;
+        }
+
+        await loadPublicData();
+        await showSettings();
+        setAdminFeedback("FAMA de " + (member.nickname || "integrante") + " corrigida com sucesso.", "success");
+      });
+
+      const removeButton = document.createElement("button");
+      removeButton.type = "button";
+      removeButton.className = "danger-button";
+      removeButton.textContent = "Remover integrante";
+      removeButton.addEventListener("click", async () => {
+        const confirmation = window.confirm(
+          "Remover " + (member.nickname || "este integrante") +
+          " do slot " + padSlot(member.slot_number) + "?\n\n" +
+          "A conta, Nick, Discord, FAMA individual e requests serão excluídos. " +
+          "A FAMA global do SACRIFICIO será preservada."
+        );
+
+        if (!confirmation) return;
+
+        removeButton.disabled = true;
+        removeButton.textContent = "Removendo...";
+
+        const { data, error } = await supabaseClient.functions.invoke(
+          "remove-clan-member",
+          { body: { slot_number: Number(member.slot_number) } }
+        );
+
+        if (error || !data?.success) {
+          const message = error
+            ? await readFunctionError(error, "Não foi possível remover o integrante.")
+            : (data?.error || "O servidor não confirmou a remoção.");
+
+          console.error("Erro ao remover integrante:", error || data);
+          removeButton.disabled = false;
+          removeButton.textContent = "Remover integrante";
+          setAdminFeedback(message, "error");
+          return;
+        }
+
+        await loadPublicData();
+        await showSettings();
+        setAdminFeedback(
+          "Integrante removido. Slot " + padSlot(data.slot_number) +
+          " liberado; a FAMA global foi preservada.",
+          "success"
+        );
+      });
+
+      actions.append(fameForm, removeButton);
+      card.append(top, actions);
+      list.appendChild(card);
+    });
+
+    // Cadastro de novas contas
     const { data: houseData, error: houseError } = await supabaseClient
       .from("houses")
       .select("id,code,name,manager_profile_id");
@@ -412,11 +687,9 @@
       const available = members
         .filter((member) => {
           if (member.is_occupied) return false;
-
           if (!isManager) {
             return member.slot_type === "member" || member.slot_type === "special";
           }
-
           if (member.slot_type !== "manager" || !member.house_id) return false;
           const house = houses.find((item) => item.id === member.house_id);
           return Boolean(house && !house.manager_profile_id);
@@ -445,7 +718,6 @@
 
       slotSelect.disabled = available.length === 0;
       submitButton.disabled = available.length === 0;
-
       slotInfo.textContent = isManager
         ? "Gerentes ocupam os slots 46–49 e ficam vinculados à casa correspondente."
         : "Membros podem ocupar os slots 01–45, incluindo as cinco vagas especiais.";
@@ -493,15 +765,7 @@
         );
 
         if (error) {
-          let serverMessage = error.message || "Não foi possível criar a conta.";
-          try {
-            if (error.context && typeof error.context.json === "function") {
-              const payload = await error.context.json();
-              if (payload && payload.error) serverMessage = payload.error;
-            }
-          } catch (_) {
-            // Mantém a mensagem original caso a resposta não seja JSON.
-          }
+          const serverMessage = await readFunctionError(error, "Não foi possível criar a conta.");
           throw new Error(serverMessage);
         }
 
