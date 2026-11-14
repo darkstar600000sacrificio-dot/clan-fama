@@ -553,6 +553,7 @@
       newFameInput.maxLength = 30;
       newFameInput.pattern = "[0-9]+";
       newFameInput.placeholder = "Novo valor";
+      newFameInput.value = String(member.fame ?? "0");
       newFameInput.required = true;
       newFameInput.setAttribute("aria-label", "Nova FAMA de " + (member.nickname || "integrante"));
       const reasonInput = document.createElement("input");
