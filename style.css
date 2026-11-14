@@ -166,3 +166,32 @@ button { color: inherit; }
 @media (max-width: 650px) {
   .request-card { align-items: flex-start; flex-direction: column; }
 }
+
+
+/* Owner account administration form */
+.settings-intro { margin-bottom: 15px; }
+.admin-form { margin-top: 15px; padding: 22px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
+.admin-form-heading { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 20px; }
+.admin-form-heading h3 { margin: 5px 0 0; font-size: 19px; }
+.form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.form-field { min-width: 0; display: grid; align-content: start; gap: 7px; }
+.form-field-wide { grid-column: 1 / -1; }
+.form-field label { color: #e5e7eb; font-size: 12px; font-weight: 650; }
+.form-field input, .form-field select { width: 100%; min-height: 42px; padding: 0 11px; border: 1px solid var(--border); border-radius: 8px; outline: none; background: #111317; color: var(--text); }
+.form-field input:focus, .form-field select:focus { border-color: #e8eaee; box-shadow: 0 0 0 3px #ffffff12; }
+.form-field input::placeholder { color: #777d87; }
+.form-field small { color: var(--dim); font-size: 10px; line-height: 1.5; }
+.admin-form-note { margin-top: 18px; padding: 12px 14px; display: grid; gap: 5px; border: 1px solid var(--border-soft); border-radius: 8px; background: #111317; }
+.admin-form-note strong { font-size: 11px; }
+.admin-form-note span { color: var(--muted); font-size: 10px; line-height: 1.6; }
+.form-feedback { min-height: 18px; margin: 13px 0 8px; color: var(--muted); font-size: 11px; line-height: 1.5; }
+.form-feedback.error { color: #ff9898; }
+.form-feedback.success { color: #a8e6bd; }
+.form-actions { display: flex; justify-content: flex-end; gap: 10px; }
+.form-actions .primary-button:disabled { opacity: .55; cursor: not-allowed; }
+@media (max-width: 650px) {
+  .admin-form { padding: 16px; }
+  .form-grid { grid-template-columns: 1fr; }
+  .form-field-wide { grid-column: auto; }
+  .form-actions .primary-button { width: 100%; }
+}
