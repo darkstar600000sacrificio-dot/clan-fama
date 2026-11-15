@@ -246,3 +246,185 @@ button { color: inherit; }
   .member-fame-form button { width: 100%; }
   .danger-button { width: 100%; justify-self: stretch; }
 }
+
+
+/* Members page: white house cards and expandable white member lists */
+.members-house-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 15px;
+}
+.members-house-card {
+  --house-outline: #9ca3af;
+  position: relative;
+  width: 100%;
+  min-height: 142px;
+  padding: 19px 52px 18px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 8px;
+  border: 2px solid var(--house-outline);
+  border-radius: 13px;
+  background: #ffffff;
+  color: #111827;
+  text-align: left;
+  cursor: pointer;
+  transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease;
+}
+.members-house-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 9px 24px #00000018;
+}
+.members-house-card:focus-visible {
+  outline: 3px solid #9ca3af;
+  outline-offset: 3px;
+}
+.members-house-card.is-selected {
+  box-shadow: 0 0 0 3px #11182718, 0 8px 22px #00000012;
+}
+.members-house-eyebrow {
+  color: #6b7280;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 1.25px;
+}
+.members-house-name {
+  color: #111827;
+  font-size: 20px;
+  font-weight: 800;
+}
+.members-house-detail {
+  color: #374151;
+  font-size: 12px;
+  font-weight: 650;
+}
+.members-house-occupancy {
+  color: #6b7280;
+  font-size: 10px;
+}
+.members-house-arrow {
+  position: absolute;
+  top: 18px;
+  right: 19px;
+  color: #4b5563;
+  font-size: 20px;
+}
+.members-detail-panel {
+  margin-top: 18px;
+  padding: 21px;
+  border: 2px solid #9ca3af;
+  border-radius: 13px;
+  background: #ffffff;
+  color: #111827;
+}
+.members-detail-panel[hidden] {
+  display: none !important;
+}
+.members-detail-panel[data-group="conquista"] { border-color: #041365; }
+.members-detail-panel[data-group="guerra"] { border-color: #01080b; }
+.members-detail-panel[data-group="fome"] { border-color: #f1ff00; }
+.members-detail-panel[data-group="morte"] { border-color: #ff0000; }
+.members-detail-panel[data-group="rotativos"] { border-color: #9ca3af; }
+.members-detail-heading {
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+.members-detail-heading .eyebrow {
+  margin: 0 0 5px;
+  color: #6b7280;
+}
+.members-detail-heading h3 {
+  margin: 0;
+  color: #111827;
+  font-size: 21px;
+}
+.members-detail-caption {
+  margin: 6px 0 0;
+  color: #4b5563;
+  font-size: 11px;
+  line-height: 1.5;
+}
+.members-back-button {
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: #f9fafb;
+  color: #111827;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.members-back-button:hover { background: #f3f4f6; }
+.members-slot-list {
+  display: grid;
+  gap: 8px;
+}
+.members-slot-row {
+  min-width: 0;
+  min-height: 61px;
+  padding: 10px 13px;
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 9px;
+  background: #ffffff;
+  color: #111827;
+}
+.members-slot-row.is-manager {
+  border-color: #cbd5e1;
+  background: #f9fafb;
+}
+.members-slot-number {
+  color: #111827;
+  font-size: 13px;
+  font-weight: 850;
+  font-variant-numeric: tabular-nums;
+}
+.members-slot-identity {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+.members-slot-identity strong {
+  overflow-wrap: anywhere;
+  color: #111827;
+  font-size: 12px;
+}
+.members-slot-identity span {
+  color: #6b7280;
+  font-size: 10px;
+}
+.members-slot-status {
+  padding: 6px 8px;
+  border: 1px solid #e5e7eb;
+  border-radius: 7px;
+  font-size: 9px;
+  font-weight: 750;
+  white-space: nowrap;
+}
+.members-slot-status.occupied {
+  border-color: #cbd5e1;
+  background: #f3f4f6;
+  color: #1f2937;
+}
+.members-slot-status.available {
+  background: #ffffff;
+  color: #6b7280;
+}
+@media (max-width: 650px) {
+  .members-house-grid { grid-template-columns: 1fr; gap: 11px; }
+  .members-house-card { min-height: 124px; }
+  .members-detail-panel { padding: 15px; }
+  .members-detail-heading { align-items: flex-start; flex-direction: column; }
+  .members-back-button { width: 100%; }
+  .members-slot-row { grid-template-columns: 36px minmax(0, 1fr); gap: 9px; }
+  .members-slot-status { grid-column: 2; justify-self: start; }
+}
