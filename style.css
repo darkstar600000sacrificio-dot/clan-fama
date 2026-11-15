@@ -428,3 +428,57 @@ button { color: inherit; }
   .members-slot-row { grid-template-columns: 36px minmax(0, 1fr); gap: 9px; }
   .members-slot-status { grid-column: 2; justify-self: start; }
 }
+
+
+/* Fame totals and per-slot photo areas in the members view */
+.members-house-fame {
+  color: #111827;
+  font-size: 11px;
+  font-weight: 800;
+}
+.members-slot-photo-wrap {
+  width: 64px;
+  height: 64px;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  border: 1px dashed #cbd5e1;
+  border-radius: 9px;
+  background: #f3f4f6;
+}
+.members-slot-photo {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  object-position: center;
+}
+.members-slot-photo-placeholder {
+  color: #9ca3af;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .8px;
+}
+.members-slot-fame {
+  color: #111827 !important;
+  font-size: 11px !important;
+  font-weight: 800;
+}
+.members-slot-row {
+  grid-template-columns: 64px 42px minmax(0, 1fr) auto;
+  min-height: 82px;
+}
+@media (max-width: 650px) {
+  .members-slot-row {
+    grid-template-columns: 54px 34px minmax(0, 1fr);
+    min-height: 76px;
+  }
+  .members-slot-photo-wrap {
+    width: 54px;
+    height: 54px;
+  }
+  .members-slot-status {
+    grid-column: 3;
+    justify-self: start;
+  }
+}
