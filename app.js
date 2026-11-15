@@ -329,7 +329,10 @@
   }
 
   function localizeNode(node) {
+    // Keep sensitive administration forms in their original Portuguese wording.
+    // This also prevents the dynamic language observer from rewriting the account form.
     if (node.nodeType === Node.TEXT_NODE) {
+      if (node.parentElement && node.parentElement.closest("[data-no-translate]")) return;
       let state = originalTextNodes.get(node);
       if (!state || node.nodeValue !== state.translated) {
         state = { original: node.nodeValue, translated: null };
@@ -342,6 +345,7 @@
     }
 
     if (node.nodeType !== Node.ELEMENT_NODE) return;
+    if (node.closest("[data-no-translate]")) return;
     ["placeholder", "title", "aria-label"].forEach((attribute) => {
       if (!node.hasAttribute(attribute)) return;
       let map = originalAttributes.get(node);
@@ -1167,7 +1171,7 @@
       </section>
 
       <section class="admin-section">
-        <details class="create-account-details" open>
+        <details class="create-account-details" open data-no-translate>
           <summary>
             <span><p class="eyebrow">NOVO CADASTRO</p><strong>Criar conta</strong></span>
             <span class="number-chip">+</span>
