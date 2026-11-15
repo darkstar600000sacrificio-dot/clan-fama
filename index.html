@@ -67,7 +67,14 @@
             <h2>SACRIFICIO</h2>
             <p class="muted welcome-copy">Painel de organização, casas e integrantes do clã.</p>
           </div>
-          <div class="panel-tag">ESTRUTURA DO CLÃ <strong>50 SLOTS</strong></div>
+          <div class="welcome-actions">
+            <div class="language-control" role="group" aria-label="Language">
+              <span class="language-control-label">IDIOMA</span>
+              <button class="language-option is-active" type="button" data-language="pt-BR" aria-pressed="true" title="Português">PT</button>
+              <button class="language-option" type="button" data-language="en" aria-pressed="false" title="English">EN</button>
+            </div>
+            <div class="panel-tag">ESTRUTURA DO CLÃ <strong>50 SLOTS</strong></div>
+          </div>
         </div>
 
         <div class="stats-grid">
@@ -94,7 +101,7 @@
             <p class="muted">Conta principal do clã.</p>
           </article>
         </div>
-        <p class="footnote">Esta é a estrutura inicial do site. Os dados reais serão conectados ao Supabase na próxima etapa.</p>
+        <p class="footnote">A estrutura do clã e as informações dos membros são carregadas do Supabase.</p>
       </section>
 
       <section class="view" id="view-members" data-title="Membros" hidden>

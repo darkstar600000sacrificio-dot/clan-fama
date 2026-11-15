@@ -40,6 +40,300 @@
   const loginStatus = document.getElementById("login-status");
   const loginSubmit = document.getElementById("login-submit");
 
+  // Interface language: Portuguese is the default; English preference is saved per browser.
+  const LANGUAGE_STORAGE_KEY = "sacrificio-language";
+  let currentLanguage = "pt-BR";
+  try {
+    const savedLanguage = window.localStorage.getItem(LANGUAGE_STORAGE_KEY);
+    if (savedLanguage === "en" || savedLanguage === "pt-BR") currentLanguage = savedLanguage;
+  } catch (_) {}
+
+  const translations = {
+    "IDIOMA": "LANGUAGE",
+    "NAVEGAÇÃO": "NAVIGATION",
+    "Visão geral": "Overview",
+    "Membros": "Members",
+    "Configurações": "Settings",
+    "Área pública": "Public area",
+    "Entrar": "Log in",
+    "Sair": "Log out",
+    "SISTEMA DE GERENCIAMENTO": "CLAN MANAGEMENT SYSTEM",
+    "Visualização pública": "Public view",
+    "BEM-VINDO AO": "WELCOME TO",
+    "Painel de organização, casas e integrantes do clã.": "Clan management panel for houses and members.",
+    "ESTRUTURA DO CLÃ": "CLAN STRUCTURE",
+    "Slots totais": "Total slots",
+    "Estrutura completa": "Full structure",
+    "Casas": "Houses",
+    "Quatro cavaleiros": "Four horsemen",
+    "Slots especiais": "Special slots",
+    "Rotativos e especiais": "Rotating and special",
+    "Gerentes": "Managers",
+    "Uma posição por casa": "One position per house",
+    "ORGANIZAÇÃO": "ORGANIZATION",
+    "Casas do clã": "Clan houses",
+    "Ver todos os slots": "View all slots",
+    "VAGAS 41–45": "SLOTS 41–45",
+    "Cinco posições reservadas para membros especiais ou rotativos, sob sua administração.": "Five positions reserved for special or rotating members, managed by you.",
+    "SLOT 50": "SLOT 50",
+    "Proprietário": "Owner",
+    "Conta principal do clã.": "Main clan account.",
+    "A estrutura do clã e as informações dos membros são carregadas do Supabase.": "Clan structure and member information are loaded from Supabase.",
+    "Conquista": "Conquest",
+    "Guerra": "War",
+    "Fome": "Famine",
+    "Morte": "Death",
+    "ORGANIZAÇÃO DO CLÃ": "CLAN ORGANIZATION",
+    "Membros e slots": "Members and slots",
+    "As casas e suas posições podem ser consultadas publicamente.": "Houses and their positions can be viewed publicly.",
+    "CASA SELECIONADA": "SELECTED HOUSE",
+    "Fechar lista": "Close list",
+    "Selecione uma casa para ver as vagas, a fama de cada integrante e a fama total. Fotos opcionais: coloque arquivos PNG na pasta": "Select a house to view its slots, each member's Fame, and the total Fame. Optional photos: add PNG files to the",
+    "fotos": "photos",
+    ", usando o nome da casa e o número do slot (ex.:": ", using the house name and slot number (e.g.",
+    "SOLICITAÇÕES": "REQUESTS",
+    "Pedidos de alteração de FAMA enviados pelos membros.": "Fame change requests submitted by members.",
+    "Área de acesso restrito": "Restricted area",
+    "Entre com sua conta de proprietário ou gerente para consultar as solicitações autorizadas.": "Sign in with an owner or manager account to view authorized requests.",
+    "ADMINISTRAÇÃO": "ADMINISTRATION",
+    "Gerenciamento de contas, casas, slots e permissões.": "Manage accounts, houses, slots, and permissions.",
+    "Somente o proprietário poderá acessar as configurações administrativas.": "Only the owner can access administrative settings.",
+    "PAINEL DO CLÃ · VERSÃO INICIAL": "CLAN PANEL · INITIAL VERSION",
+    "ACESSO AO CLÃ": "CLAN ACCESS",
+    "Fechar": "Close",
+    "Entrar no SACRIFICIO": "Sign in to SACRIFICIO",
+    "Proprietário e gerentes entram com email. Membros entram com o Nick do jogo.": "Owners and managers sign in with email. Members sign in with their in-game nickname.",
+    "Email ou Nick": "Email or nickname",
+    "Seu email ou Nick do jogo": "Your email or in-game nickname",
+    "Senha": "Password",
+    "Sua senha": "Your password",
+    "PAINEL DO CLÃ": "CLAN PANEL",
+    "CASA DO CLÃ": "CLAN HOUSE",
+    "10 vagas + 1 gerente": "10 slots + 1 manager",
+    "10 vagas de membros e 1 posição de gerente": "10 member slots and 1 manager position",
+    "Rotativos · 5 vagas especiais": "Rotating members · 5 special slots",
+    "Minha área": "My area",
+    "ÁREA DO PROPRIETÁRIO": "OWNER AREA",
+    "Gerente ainda não cadastrado": "Manager not registered yet",
+    "Gerente cadastrado": "Manager registered",
+    "Gerente": "Manager",
+    "Membro": "Member",
+    "Especial": "Special",
+    "Proprietário do clã": "Clan owner",
+    "Vaga disponível": "Slot available",
+    "Integrante cadastrado": "Member registered",
+    "Conta vinculada": "Account linked",
+    "A definir": "To be defined",
+    "FOTO": "PHOTO",
+    "Ocupado": "Occupied",
+    "Disponível": "Available",
+    "Fama": "Fame",
+    "FAMA": "FAME",
+    "Sua FAMA": "Your Fame",
+    "Minha FAMA": "My Fame",
+    "FAMA global": "Global Fame",
+    "FAMA global atual": "Current Global Fame",
+    "FAMA acumulada do SACRIFICIO": "SACRIFICIO accumulated Fame",
+    "CASA DO CLÃ": "CLAN HOUSE",
+    "VAGAS": "SLOTS",
+    "CONTAS CADASTRADAS": "REGISTERED ACCOUNTS",
+    "Integrantes do clã": "Clan members",
+    "CONTROLE DO CLÃ": "CLAN CONTROL",
+    "Corrigir FAMA": "Adjust Fame",
+    "Corrigir FAMA global": "Adjust Global Fame",
+    "NOVO CADASTRO": "NEW ACCOUNT",
+    "Criar conta": "Create account",
+    "Tipo de conta": "Account type",
+    "Escolha primeiro o tipo de conta.": "Choose the account type first.",
+    "Nick do jogo": "In-game nickname",
+    "Senha inicial": "Initial password",
+    "Slot disponível": "Available slot",
+    "Selecione uma vaga": "Select a slot",
+    "Discord (opcional)": "Discord (optional)",
+    "Email do gerente": "Manager email",
+    "O email será usado para entrar na conta de gerente.": "This email will be used to sign in to the manager account.",
+    "Motivo da correção": "Reason for adjustment",
+    "Motivo da correção de FAMA": "Reason for Fame adjustment",
+    "Explique o motivo do ajuste": "Explain the reason for the adjustment",
+    "Mínimo de 10 caracteres": "At least 10 characters",
+    "Novo total global": "New global total",
+    "Nova FAMA desejada": "Desired new Fame",
+    "Enviar solicitação": "Submit request",
+    "Salvar FAMA": "Save Fame",
+    "Criar conta e ocupar slot": "Create account and fill slot",
+    "ÁREA DO MEMBRO": "MEMBER AREA",
+    "Solicitar alteração de FAMA": "Request a Fame change",
+    "Você só pode solicitar um valor maior que sua FAMA atual.": "You can only request a value higher than your current Fame.",
+    "Sua FAMA atual": "Your current Fame",
+    "Solicitações recebidas": "Received requests",
+    "Nenhuma solicitação encontrada.": "No requests found.",
+    "Ainda não existem membros ou gerentes cadastrados.": "No members or managers have been registered yet.",
+    "Integrante sem Nick": "Member without nickname",
+    "Sair da conta": "Log out",
+    "Conectado": "Signed in",
+    "Sessão ativa": "Active session",
+    "Acesso confirmado.": "Access confirmed.",
+    "Registrando sua solicitação...": "Submitting your request...",
+    "Verificando acesso...": "Verifying access...",
+    "Enviando cadastro ao Supabase...": "Sending account data to Supabase...",
+    "Criando conta...": "Creating account...",
+    "Aplicando correção global...": "Applying global adjustment...",
+    "Salvando decisão...": "Saving decision...",
+    "Selecione um slot disponível.": "Select an available slot.",
+    "Informe o email do gerente.": "Enter the manager's email.",
+    "Informe um número inteiro válido.": "Enter a valid whole number.",
+    "Informe um total inteiro válido e o motivo da correção.": "Enter a valid whole-number total and the reason for the adjustment.",
+    "Informe uma FAMA inteira válida e o motivo da correção.": "Enter a valid whole-number Fame value and the reason for the adjustment.",
+    "Digite o total correto": "Enter the correct total",
+    "Digite o valor atualizado": "Enter the updated value",
+    "A nova FAMA precisa ser maior que": "The new Fame must be greater than",
+    "A FAMA global do SACRIFICIO será preservada.": "SACRIFICIO's global Fame will be preserved.",
+    "A FAMA global também diminuirá pela diferença. Deseja continuar?": "Global Fame will also decrease by the difference. Do you want to continue?",
+    "Remover integrante": "Remove member",
+    "Remover": "Remove",
+    "liberado; a FAMA global foi preservada.": "released; global Fame was preserved.",
+    "Solicitação aprovada e FAMA atualizada.": "Request approved and Fame updated.",
+    "Solicitação recusada.": "Request rejected.",
+    "Solicitação enviada! Sua FAMA atual só será alterada após a aprovação da administração.": "Request submitted! Your current Fame will only change after approval by the administration.",
+    "FAMA global atualizada com sucesso.": "Global Fame updated successfully.",
+    "Conta criada!": "Account created!",
+    "foi vinculado ao slot": "was assigned to slot",
+    "Não foi possível carregar": "Could not load",
+    "Não foi possível carregar as casas. Atualize a página e tente novamente.": "Could not load the houses. Refresh the page and try again.",
+    "Não foi possível carregar a biblioteca do Supabase.": "Could not load the Supabase library.",
+    "Não foi possível confirmar as permissões desta conta.": "Could not verify this account's permissions.",
+    "Esta conta não está ativa ou não possui uma função válida no clã.": "This account is inactive or does not have a valid clan role.",
+    "Sua conta não está vinculada a um slot ativo. Procure a administração.": "Your account is not linked to an active slot. Contact the administration.",
+    "O cliente Supabase não carregou. Atualize a página e tente novamente.": "The Supabase client did not load. Refresh the page and try again.",
+    "Não foi possível entrar. Confira o Nick e a senha.": "Could not sign in. Check your nickname and password.",
+    "Não foi possível entrar. Confira o email e a senha.": "Could not sign in. Check your email and password.",
+    "Não foi possível criar a conta.": "Could not create the account.",
+    "Não foi possível remover o integrante.": "Could not remove the member.",
+    "O servidor não confirmou a decisão.": "The server did not confirm the decision.",
+    "O servidor não confirmou a remoção.": "The server did not confirm the removal.",
+    "O servidor não confirmou o cadastro.": "The server did not confirm the account creation.",
+    "Erro inesperado ao criar a conta.": "Unexpected error while creating the account.",
+    "Erro ao carregar casas:": "Error loading houses:",
+    "Erro ao carregar slots:": "Error loading slots:",
+    "Erro ao consultar a FAMA global:": "Error loading Global Fame:",
+    "Erro ao consultar gerentes das casas:": "Error loading house managers:",
+    "Erro ao corrigir FAMA global:": "Error adjusting Global Fame:",
+    "Erro ao corrigir FAMA individual:": "Error adjusting individual Fame:",
+    "Erro ao criar conta:": "Error creating account:",
+    "Erro ao enviar solicitação de FAMA:": "Error submitting Fame request:",
+    "Erro ao iniciar o SACRIFICIO:": "Error starting SACRIFICIO:",
+    "Erro ao recuperar sessão:": "Error restoring session:",
+    "Erro ao remover integrante:": "Error removing member:",
+    "Erro ao sair:": "Error signing out:",
+    "Entre com sua conta para acessar esta área.": "Sign in to access this area.",
+    "Nenhuma vaga de gerente disponível": "No manager slots available",
+    "Nenhuma vaga disponível": "No slots available",
+    "Carregando...": "Loading...",
+    "FAMA de ": "Fame of ",
+    "Ocupado": "Occupied"
+  };
+
+  const originalTextNodes = new WeakMap();
+  const originalAttributes = new WeakMap();
+
+  function translateText(value) {
+    if (currentLanguage !== "en" || !value) return value;
+    const core = value.trim();
+    const start = value.indexOf(core);
+    const leading = start < 0 ? value : value.slice(0, start);
+    const trailing = start < 0 ? "" : value.slice(start + core.length);
+    let translated = Object.prototype.hasOwnProperty.call(translations, core) ? translations[core] : core;
+
+    if (translated.startsWith("Fama da casa: ")) translated = "House Fame: " + translated.slice("Fama da casa: ".length);
+    if (translated.startsWith("Fama dos rotativos: ")) translated = "Rotating members' Fame: " + translated.slice("Fama dos rotativos: ".length);
+    if (translated.startsWith("Fama: ")) translated = "Fame: " + translated.slice("Fama: ".length);
+    if (translated.startsWith("Fama total: ")) translated = "Total Fame: " + translated.slice("Fama total: ".length);
+    if (translated.startsWith("Gerente · slot ")) translated = "Manager · slot " + translated.slice("Gerente · slot ".length);
+    if (translated.startsWith("Conectado · ")) translated = "Signed in · " + translated.slice("Conectado · ".length);
+    if (translated.startsWith("Responsável: ")) translated = "Managed by: " + translated.slice("Responsável: ".length);
+    if (translated.startsWith("Gerente · ")) translated = "Manager · " + translated.slice("Gerente · ".length);
+    if (translated.startsWith("Slot ") && translated.includes(" · ")) {
+      const parts = translated.split(" · ");
+      const role = translations[parts[1]] || parts[1];
+      translated = parts[0] + " · " + role;
+    }
+    if (translated.startsWith("Slots ")) translated = translated;
+
+    const ratioSuffix = "/10 vagas ocupadas";
+    const ratioIndex = translated.indexOf(ratioSuffix);
+    if (ratioIndex > 0 && Number.isFinite(Number(translated.slice(0, ratioIndex)))) {
+      translated = translated.slice(0, ratioIndex) + "/10 slots occupied";
+    }
+    const positionsSuffix = " posições";
+    if (translated.endsWith(positionsSuffix)) translated = translated.slice(0, -positionsSuffix.length) + " positions";
+    if (translated.endsWith(" posição")) translated = translated.slice(0, -" posição".length) + " position";
+
+    return leading + translated + trailing;
+  }
+
+  function localizeNode(node) {
+    if (node.nodeType === Node.TEXT_NODE) {
+      let state = originalTextNodes.get(node);
+      if (!state || node.nodeValue !== state.translated) {
+        state = { original: node.nodeValue, translated: null };
+        originalTextNodes.set(node, state);
+      }
+      const next = translateText(state.original);
+      state.translated = next;
+      if (node.nodeValue !== next) node.nodeValue = next;
+      return;
+    }
+
+    if (node.nodeType !== Node.ELEMENT_NODE) return;
+    ["placeholder", "title", "aria-label"].forEach((attribute) => {
+      if (!node.hasAttribute(attribute)) return;
+      let map = originalAttributes.get(node);
+      if (!map) {
+        map = new Map();
+        originalAttributes.set(node, map);
+      }
+      let state = map.get(attribute);
+      const current = node.getAttribute(attribute);
+      if (!state || current !== state.translated) {
+        state = { original: current, translated: null };
+        map.set(attribute, state);
+      }
+      const next = translateText(state.original);
+      state.translated = next;
+      if (current !== next) node.setAttribute(attribute, next);
+    });
+    Array.from(node.childNodes).forEach(localizeNode);
+  }
+
+  function applyLanguage(language) {
+    currentLanguage = language === "en" ? "en" : "pt-BR";
+    try {
+      window.localStorage.setItem(LANGUAGE_STORAGE_KEY, currentLanguage);
+    } catch (_) {}
+    document.documentElement.lang = currentLanguage === "en" ? "en" : "pt-BR";
+    localizeNode(document.documentElement);
+    document.querySelectorAll("[data-language]").forEach((button) => {
+      const active = button.dataset.language === currentLanguage;
+      button.classList.toggle("is-active", active);
+      button.setAttribute("aria-pressed", active ? "true" : "false");
+    });
+  }
+
+  const languageObserver = new MutationObserver((records) => {
+    records.forEach((record) => {
+      if (record.type === "childList") record.addedNodes.forEach(localizeNode);
+      else if (record.type === "characterData") localizeNode(record.target);
+      else if (record.type === "attributes") localizeNode(record.target);
+    });
+  });
+  languageObserver.observe(document.documentElement, {
+    subtree: true,
+    childList: true,
+    characterData: true,
+    attributes: true,
+    attributeFilter: ["placeholder", "title", "aria-label"]
+  });
+
   function padSlot(number) {
     return String(number).padStart(2, "0");
   }
@@ -124,7 +418,7 @@
     if (value === null || value === undefined || value === "") return "—";
     const numeric = Number(value);
     return Number.isFinite(numeric)
-      ? numeric.toLocaleString("pt-BR", { maximumFractionDigits: 2 })
+      ? numeric.toLocaleString(currentLanguage === "en" ? "en-US" : "pt-BR", { maximumFractionDigits: 2 })
       : String(value);
   }
 
@@ -1350,6 +1644,11 @@
       loginSubmit.textContent = "Entrar";
     }
   });
+
+  document.querySelectorAll("[data-language]").forEach((button) => {
+    button.addEventListener("click", () => applyLanguage(button.dataset.language));
+  });
+  applyLanguage(currentLanguage);
 
   if (membersBackButton) {
     membersBackButton.addEventListener("click", closeMembersGroup);
