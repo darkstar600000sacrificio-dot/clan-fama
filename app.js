@@ -237,9 +237,11 @@
   }
 
   function createMemberSlotRow(slotNumber, member, roleLabel, photoCode) {
+    const occupied = Boolean(member && member.is_occupied);
     const row = document.createElement("article");
     row.className = "members-slot-row" + (roleLabel === "Gerente" ? " is-manager" : "");
 
+    // Segmento 1: foto local da casa e do slot.
     const photo = document.createElement("div");
     photo.className = "members-slot-photo-wrap";
 
@@ -261,32 +263,39 @@
     placeholder.hidden = true;
     photo.append(image, placeholder);
 
-    const number = document.createElement("span");
-    number.className = "members-slot-number";
-    number.textContent = padSlot(slotNumber);
-
+    // Segmento 2: nome e identificação do slot.
     const identity = document.createElement("div");
     identity.className = "members-slot-identity";
 
     const name = document.createElement("strong");
-    const occupied = Boolean(member && member.is_occupied);
     name.textContent = occupied
       ? (member.nickname || (roleLabel === "Gerente" ? "Gerente cadastrado" : "Integrante cadastrado"))
       : "Vaga disponível";
 
     const role = document.createElement("span");
-    role.textContent = roleLabel + (member && member.slot_label ? " · " + member.slot_label : "");
+    role.textContent = "Slot " + padSlot(slotNumber) + " · " + roleLabel +
+      (member && member.slot_label ? " · " + member.slot_label : "");
+    identity.append(name, role);
 
-    const fame = document.createElement("span");
+    // Segmento 3: fama em coluna própria, ao lado do nome.
+    const fame = document.createElement("div");
     fame.className = "members-slot-fame";
-    fame.textContent = "Fama: " + (occupied ? formatFame(member.fame) : "—");
-    identity.append(name, role, fame);
 
+    const fameLabel = document.createElement("span");
+    fameLabel.className = "members-slot-fame-label";
+    fameLabel.textContent = "FAMA";
+
+    const fameValue = document.createElement("strong");
+    fameValue.className = "members-slot-fame-value";
+    fameValue.textContent = occupied ? formatFame(member.fame) : "—";
+    fame.append(fameLabel, fameValue);
+
+    // Segmento 4: estado da vaga.
     const status = document.createElement("span");
     status.className = "members-slot-status " + (occupied ? "occupied" : "available");
     status.textContent = occupied ? "Ocupado" : "Disponível";
 
-    row.append(photo, number, identity, status);
+    row.append(photo, identity, fame, status);
     return row;
   }
 
