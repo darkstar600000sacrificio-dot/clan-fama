@@ -29,9 +29,12 @@
   let currentProfile = null;
 
   const overviewHouses = document.getElementById("overview-houses");
-  const tableBody = document.getElementById("members-table-body");
-  const searchInput = document.getElementById("member-search");
-  const memberCount = document.getElementById("member-count");
+  const membersHouseGrid = document.getElementById("members-house-grid");
+  const membersDetailPanel = document.getElementById("members-detail-panel");
+  const membersDetailTitle = document.getElementById("members-detail-title");
+  const membersDetailCaption = document.getElementById("members-detail-caption");
+  const membersSlotList = document.getElementById("members-slot-list");
+  const membersBackButton = document.getElementById("members-back-button");
   const loginDialog = document.getElementById("login-dialog");
   const loginForm = document.getElementById("login-form");
   const loginStatus = document.getElementById("login-status");
@@ -117,43 +120,167 @@
     });
   }
 
-  function createMemberRows(filter) {
-    const term = (filter || "").trim().toLocaleLowerCase("pt-BR");
-    tableBody.replaceChildren();
-    let visible = 0;
+  function createMembersHouseCard(code, title, eyebrow, detail, occupancy) {
+    const card = document.createElement("button");
+    card.type = "button";
+    card.className = "members-house-card";
+    card.dataset.group = code;
+    card.setAttribute("aria-expanded", "false");
 
-    members.forEach((member) => {
-      const info = getSlotInfo(member);
-      const slot = Number(member.slot_number);
-      const displayName = member.nickname || (member.is_occupied ? "Integrante cadastrado" : "Vaga disponível");
-      const searchable = [
-        padSlot(slot), member.slot_label || "", info.group, info.role, displayName,
-        member.discord_tag || "", String(member.fame || "")
-      ].join(" ").toLocaleLowerCase("pt-BR");
+    const label = document.createElement("span");
+    label.className = "members-house-eyebrow";
+    label.textContent = eyebrow;
 
-      if (term && !searchable.includes(term)) return;
-      visible += 1;
+    const name = document.createElement("strong");
+    name.className = "members-house-name";
+    name.textContent = title;
 
-      const row = document.createElement("tr");
-      const state = member.is_occupied ? "Ocupado" : "Disponível";
-      const values = [
-        { text: padSlot(slot), className: "slot-number" },
-        { text: info.group, className: "" },
-        { text: info.role, className: "" },
-        { text: displayName, className: member.slot_type === "owner" ? "status-owner" : "" },
-        { text: state, className: member.is_occupied ? "status-owner" : "status-empty" }
-      ];
+    const description = document.createElement("span");
+    description.className = "members-house-detail";
+    description.textContent = detail;
 
-      values.forEach((value) => {
-        const cell = document.createElement("td");
-        cell.textContent = value.text;
-        if (value.className) cell.className = value.className;
-        row.appendChild(cell);
-      });
-      tableBody.appendChild(row);
+    const count = document.createElement("span");
+    count.className = "members-house-occupancy";
+    count.textContent = occupancy;
+
+    const arrow = document.createElement("span");
+    arrow.className = "members-house-arrow";
+    arrow.setAttribute("aria-hidden", "true");
+    arrow.textContent = "↗";
+
+    card.append(label, name, description, count, arrow);
+    card.addEventListener("click", () => showMembersGroup(code));
+    return card;
+  }
+
+  function createMembersHouseCards() {
+    if (!membersHouseGrid) return;
+    membersHouseGrid.replaceChildren();
+
+    houseOrder.forEach((code, index) => {
+      const house = houses.find((item) => item.code === code);
+      if (!house) return;
+
+      const houseMembers = members.filter(
+        (member) => member.house_id === house.id && member.slot_type === "member"
+      );
+      const occupied = houseMembers.filter((member) => member.is_occupied).length;
+      const card = createMembersHouseCard(
+        code,
+        house.name || houseNames[code],
+        "CASA DO CLÃ",
+        "10 vagas + 1 gerente",
+        occupied + "/10 vagas ocupadas"
+      );
+      card.style.setProperty("--house-outline", ["#041365", "#01080b", "#f1ff00", "#ff0000"][index]);
+      membersHouseGrid.appendChild(card);
     });
 
-    memberCount.textContent = visible + (visible === 1 ? " posição" : " posições");
+    const rotatingSlots = members.filter(
+      (member) => member.slot_type === "special" && Number(member.slot_number) >= 41 && Number(member.slot_number) <= 45
+    );
+    const occupiedRotating = rotatingSlots.filter((member) => member.is_occupied).length;
+    const owner = members.find((member) => Number(member.slot_number) === 50);
+    const ownerName = owner && owner.nickname ? owner.nickname : "Proprietário do clã";
+    const rotatingCard = createMembersHouseCard(
+      "rotativos",
+      "Minha área",
+      "ÁREA DO PROPRIETÁRIO",
+      "Rotativos · 5 vagas especiais",
+      "Responsável: " + ownerName + " · " + occupiedRotating + "/5 ocupadas"
+    );
+    rotatingCard.style.setProperty("--house-outline", "#9ca3af");
+    membersHouseGrid.appendChild(rotatingCard);
+  }
+
+  function createMemberSlotRow(slotNumber, member, roleLabel) {
+    const row = document.createElement("article");
+    row.className = "members-slot-row" + (roleLabel === "Gerente" ? " is-manager" : "");
+
+    const number = document.createElement("span");
+    number.className = "members-slot-number";
+    number.textContent = padSlot(slotNumber);
+
+    const identity = document.createElement("div");
+    identity.className = "members-slot-identity";
+
+    const name = document.createElement("strong");
+    const occupied = Boolean(member && member.is_occupied);
+    name.textContent = occupied
+      ? (member.nickname || (roleLabel === "Gerente" ? "Gerente cadastrado" : "Integrante cadastrado"))
+      : "Vaga disponível";
+
+    const role = document.createElement("span");
+    role.textContent = roleLabel + (member && member.slot_label ? " · " + member.slot_label : "");
+    identity.append(name, role);
+
+    const status = document.createElement("span");
+    status.className = "members-slot-status " + (occupied ? "occupied" : "available");
+    status.textContent = occupied ? "Ocupado" : "Disponível";
+
+    row.append(number, identity, status);
+    return row;
+  }
+
+  function showMembersGroup(code) {
+    if (!membersDetailPanel || !membersSlotList) return;
+
+    membersSlotList.replaceChildren();
+    membersDetailPanel.dataset.group = code;
+
+    membersHouseGrid.querySelectorAll(".members-house-card").forEach((card) => {
+      const selected = card.dataset.group === code;
+      card.classList.toggle("is-selected", selected);
+      card.setAttribute("aria-expanded", selected ? "true" : "false");
+    });
+
+    if (code === "rotativos") {
+      membersDetailTitle.textContent = "Minha área · Rotativos";
+      const owner = members.find((member) => Number(member.slot_number) === 50);
+      const ownerName = owner && owner.nickname ? owner.nickname : "Proprietário do clã";
+      membersDetailCaption.textContent = "5 vagas especiais para membros rotativos · Responsável: " + ownerName;
+
+      for (let slot = 41; slot <= 45; slot += 1) {
+        const member = members.find(
+          (item) => Number(item.slot_number) === slot && item.slot_type === "special"
+        );
+        membersSlotList.appendChild(createMemberSlotRow(slot, member, "Rotativo"));
+      }
+    } else {
+      const houseIndex = houseOrder.indexOf(code);
+      const house = houses.find((item) => item.code === code);
+      const houseName = house && house.name ? house.name : (houseNames[code] || "Casa");
+      const firstSlot = houseIndex * 10 + 1;
+      const managerSlot = 46 + houseIndex;
+
+      membersDetailTitle.textContent = houseName;
+      membersDetailCaption.textContent = "10 vagas de membros e 1 posição de gerente";
+
+      for (let slot = firstSlot; slot < firstSlot + 10; slot += 1) {
+        const member = members.find(
+          (item) => Number(item.slot_number) === slot && item.slot_type === "member"
+        );
+        membersSlotList.appendChild(createMemberSlotRow(slot, member, "Membro"));
+      }
+
+      const manager = members.find(
+        (item) => item.slot_type === "manager" &&
+          ((house && item.house_id === house.id) || Number(item.slot_number) === managerSlot)
+      );
+      const actualManagerSlot = manager ? Number(manager.slot_number) : managerSlot;
+      membersSlotList.appendChild(createMemberSlotRow(actualManagerSlot, manager, "Gerente"));
+    }
+
+    membersDetailPanel.hidden = false;
+  }
+
+  function closeMembersGroup() {
+    if (!membersDetailPanel) return;
+    membersDetailPanel.hidden = true;
+    membersHouseGrid.querySelectorAll(".members-house-card").forEach((card) => {
+      card.classList.remove("is-selected");
+      card.setAttribute("aria-expanded", "false");
+    });
   }
 
   function updateOverviewStats() {
@@ -188,7 +315,7 @@
     if (!memberResult.error && memberResult.data) members = memberResult.data;
 
     createHouseCards();
-    createMemberRows(searchInput.value);
+    createMembersHouseCards();
     updateOverviewStats();
   }
 
@@ -1143,7 +1270,9 @@
     }
   });
 
-  searchInput.addEventListener("input", () => createMemberRows(searchInput.value));
+  if (membersBackButton) {
+    membersBackButton.addEventListener("click", closeMembersGroup);
+  }
 
   async function init() {
     if (!supabaseClient) {
