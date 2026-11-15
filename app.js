@@ -196,6 +196,32 @@
     "Solicitação recusada.": "Request rejected.",
     "Solicitação enviada! Sua FAMA atual só será alterada após a aprovação da administração.": "Request submitted! Your current Fame will only change after approval by the administration.",
     "FAMA global atualizada com sucesso.": "Global Fame updated successfully.",
+    "Recebidos": "Received",
+    "Requests recebidos": "Incoming requests",
+    "Novo valor": "New value",
+    "Usuário do Discord": "Discord username",
+    "Membros podem ocupar os slots 01–45, incluindo as cinco vagas especiais.": "Members can use slots 01–45, including the five special slots.",
+    "Gerentes ocupam os slots 46–49 e ficam vinculados à casa correspondente.": "Managers occupy slots 46–49 and are linked to their corresponding house.",
+    "Não foi possível carregar o perfil:": "Could not load the profile:",
+    "Não foi possível carregar os requests:": "Could not load requests:",
+    "Não foi possível carregar seus dados de membro:": "Could not load your member information:",
+    "Não foi possível concluir:": "Could not complete:",
+    "Não foi possível corrigir a FAMA global:": "Could not adjust Global Fame:",
+    "Não foi possível corrigir a FAMA:": "Could not adjust Fame:",
+    "Não foi possível enviar.": "Could not submit.",
+    "Não foi possível identificar a casa do gerente:": "Could not identify the manager's house:",
+    "Supabase JS não foi carregado.": "Supabase JS did not load.",
+    "Erro de login:": "Sign-in error:",
+    "A conta, Nick, Discord, FAMA individual e requests serão excluídos.": "The account, nickname, Discord tag, individual Fame, and requests will be deleted.",
+    "Confirma definir a FAMA global do SACRIFICIO como": "Confirm setting SACRIFICIO's Global Fame to",
+    "Você está diminuindo a FAMA de": "You are decreasing the Fame of",
+    "este integrante": "this member",
+    "registro não encontrado.": "record not found.",
+    "A nova FAMA precisa ser maior que": "The new Fame must be greater than",
+    "Integrante removido. Slot": "Member removed. Slot",
+    "Nova FAMA de": "New Fame for",
+    "FAMA de": "Fame of",
+    "A FAMA global do SACRIFICIO será preservada.": "SACRIFICIO's global Fame will be preserved.",
     "Conta criada!": "Account created!",
     "foi vinculado ao slot": "was assigned to slot",
     "Não foi possível carregar": "Could not load",
@@ -244,11 +270,28 @@
     const trailing = start < 0 ? "" : value.slice(start + core.length);
     let translated = Object.prototype.hasOwnProperty.call(translations, core) ? translations[core] : core;
 
+    if (translated.startsWith("10 vagas de membros e 1 posição de gerente · Fama total: ")) {
+      translated = "10 member slots and 1 manager position · Total Fame: " + translated.slice("10 vagas de membros e 1 posição de gerente · Fama total: ".length);
+    }
+    if (translated.startsWith("5 vagas especiais · Fama total: ")) {
+      translated = "5 special slots · Total Fame: " + translated.slice("5 vagas especiais · Fama total: ".length);
+    }
     if (translated.startsWith("Fama da casa: ")) translated = "House Fame: " + translated.slice("Fama da casa: ".length);
     if (translated.startsWith("Fama dos rotativos: ")) translated = "Rotating members' Fame: " + translated.slice("Fama dos rotativos: ".length);
     if (translated.startsWith("Fama: ")) translated = "Fame: " + translated.slice("Fama: ".length);
     if (translated.startsWith("Fama total: ")) translated = "Total Fame: " + translated.slice("Fama total: ".length);
     if (translated.startsWith("Gerente · slot ")) translated = "Manager · slot " + translated.slice("Gerente · slot ".length);
+    if (translated.startsWith("FAMA de ")) translated = "Fame of " + translated.slice("FAMA de ".length);
+    if (translated.startsWith("Nova FAMA de ")) translated = "New Fame for " + translated.slice("Nova FAMA de ".length);
+    if (translated.startsWith("Você está diminuindo a FAMA de ")) {
+      translated = "You are decreasing the Fame of " + translated.slice("Você está diminuindo a FAMA de ".length);
+    }
+    if (translated.startsWith("Confirma definir a FAMA global do SACRIFICIO como ")) {
+      translated = "Confirm setting SACRIFICIO's Global Fame to " + translated.slice("Confirma definir a FAMA global do SACRIFICIO como ".length);
+    }
+    if (translated.startsWith("A nova FAMA precisa ser maior que ")) {
+      translated = "The new Fame must be greater than " + translated.slice("A nova FAMA precisa ser maior que ".length);
+    }
     if (translated.startsWith("Conectado · ")) translated = "Signed in · " + translated.slice("Conectado · ".length);
     if (translated.startsWith("Responsável: ")) translated = "Managed by: " + translated.slice("Responsável: ".length);
     if (translated.startsWith("Gerente · ")) translated = "Manager · " + translated.slice("Gerente · ".length);
@@ -312,6 +355,14 @@
     } catch (_) {}
     document.documentElement.lang = currentLanguage === "en" ? "en" : "pt-BR";
     localizeNode(document.documentElement);
+    const selectedGroup = membersDetailPanel && !membersDetailPanel.hidden
+      ? membersDetailPanel.dataset.group
+      : null;
+    if (members.length) {
+      createHouseCards();
+      createMembersHouseCards();
+      if (selectedGroup) showMembersGroup(selectedGroup);
+    }
     document.querySelectorAll("[data-language]").forEach((button) => {
       const active = button.dataset.language === currentLanguage;
       button.classList.toggle("is-active", active);
