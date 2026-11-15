@@ -51,6 +51,8 @@
   const translations = {
     "IDIOMA": "LANGUAGE",
     "NAVEGAÇÃO": "NAVIGATION",
+    "Navegação principal": "Main navigation",
+    "Rotativo": "Rotating member",
     "Visão geral": "Overview",
     "Membros": "Members",
     "Configurações": "Settings",
@@ -295,11 +297,23 @@
     if (translated.startsWith("Conectado · ")) translated = "Signed in · " + translated.slice("Conectado · ".length);
     if (translated.startsWith("Responsável: ")) translated = "Managed by: " + translated.slice("Responsável: ".length);
     if (translated.startsWith("Gerente · ")) translated = "Manager · " + translated.slice("Gerente · ".length);
-    if (translated.startsWith("Slot ") && translated.includes(" · ")) {
+    if (translated.startsWith("Slot ") && translated.includes(" — ")) {
+      const halves = translated.split(" — ");
+      const details = halves[1].split(" · ");
+      const houseName = translations[details[0]] || details[0];
+      const role = details[1] ? (translations[details[1]] || details[1]) : "";
+      translated = halves[0] + " — " + houseName + (role ? " · " + role : "");
+    } else if (translated.startsWith("Slot ") && translated.includes(" · ")) {
       const parts = translated.split(" · ");
       const role = translations[parts[1]] || parts[1];
       translated = parts[0] + " · " + role;
     }
+    const occupiedFiveSuffix = "/5 ocupadas";
+    const occupiedFiveIndex = translated.indexOf(occupiedFiveSuffix);
+    if (occupiedFiveIndex > 0 && Number.isFinite(Number(translated.slice(0, occupiedFiveIndex)))) {
+      translated = translated.slice(0, occupiedFiveIndex) + "/5 occupied";
+    }
+    if (translated.endsWith(" ocupadas")) translated = translated.slice(0, -" ocupadas".length) + " occupied";
     if (translated.startsWith("Slots ")) translated = translated;
 
     const ratioSuffix = "/10 vagas ocupadas";
