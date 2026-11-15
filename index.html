@@ -102,17 +102,19 @@
           <h2>Membros e slots</h2>
           <p class="muted">As casas e suas posições podem ser consultadas publicamente.</p>
         </div>
-        <div class="filter-row">
-          <label class="search-box"><span>⌕</span><input id="member-search" type="search" placeholder="Buscar por casa, slot ou função" autocomplete="off"></label>
-          <span class="result-count" id="member-count">50 posições</span>
-        </div>
-        <div class="table-wrap">
-          <table class="members-table">
-            <thead><tr><th>Slot</th><th>Casa / categoria</th><th>Função</th><th>Integrante</th><th>Estado</th></tr></thead>
-            <tbody id="members-table-body"></tbody>
-          </table>
-        </div>
-        <p class="footnote">A lista mostra a distribuição planejada. A sincronização com o banco ainda será ativada.</p>
+        <div class="members-house-grid" id="members-house-grid" aria-label="Casas do clã"></div>
+        <section class="members-detail-panel" id="members-detail-panel" hidden aria-live="polite">
+          <div class="members-detail-heading">
+            <div>
+              <p class="eyebrow">CASA SELECIONADA</p>
+              <h3 id="members-detail-title">Membros</h3>
+              <p id="members-detail-caption" class="members-detail-caption"></p>
+            </div>
+            <button class="members-back-button" id="members-back-button" type="button">Fechar lista</button>
+          </div>
+          <div class="members-slot-list" id="members-slot-list"></div>
+        </section>
+        <p class="footnote">Selecione uma casa para abrir suas 10 vagas e a posição de gerente. Os dados continuam vinculados ao cadastro existente.</p>
       </section>
 
       <section class="view" id="view-requests" data-title="Requests" hidden>
