@@ -120,7 +120,42 @@
     });
   }
 
-  function createMembersHouseCard(code, title, eyebrow, detail, occupancy) {
+  function formatFame(value) {
+    if (value === null || value === undefined || value === "") return "—";
+    const numeric = Number(value);
+    return Number.isFinite(numeric)
+      ? numeric.toLocaleString("pt-BR", { maximumFractionDigits: 2 })
+      : String(value);
+  }
+
+  function sumOccupiedFame(records) {
+    return records.reduce((total, member) => {
+      if (!member || !member.is_occupied) return total;
+      const value = Number(member.fame);
+      return total + (Number.isFinite(value) ? value : 0);
+    }, 0);
+  }
+
+  function getHouseRoster(code, house) {
+    const houseIndex = houseOrder.indexOf(code);
+    if (houseIndex < 0) return [];
+    const firstSlot = houseIndex * 10 + 1;
+    const lastSlot = firstSlot + 9;
+    const managerSlot = 46 + houseIndex;
+
+    return members.filter((member) => {
+      const slot = Number(member.slot_number);
+      if (member.slot_type === "member") {
+        return (slot >= firstSlot && slot <= lastSlot) || Boolean(house && member.house_id === house.id);
+      }
+      if (member.slot_type === "manager") {
+        return slot === managerSlot || Boolean(house && member.house_id === house.id);
+      }
+      return false;
+    });
+  }
+
+  function createMembersHouseCard(code, title, eyebrow, detail, occupancy, fameText) {
     const card = document.createElement("button");
     card.type = "button";
     card.className = "members-house-card";
@@ -143,12 +178,16 @@
     count.className = "members-house-occupancy";
     count.textContent = occupancy;
 
+    const fame = document.createElement("span");
+    fame.className = "members-house-fame";
+    fame.textContent = fameText;
+
     const arrow = document.createElement("span");
     arrow.className = "members-house-arrow";
     arrow.setAttribute("aria-hidden", "true");
     arrow.textContent = "↗";
 
-    card.append(label, name, description, count, arrow);
+    card.append(label, name, description, count, fame, arrow);
     card.addEventListener("click", () => showMembersGroup(code));
     return card;
   }
@@ -164,13 +203,15 @@
       const houseMembers = members.filter(
         (member) => member.house_id === house.id && member.slot_type === "member"
       );
+      const houseFame = sumOccupiedFame(getHouseRoster(code, house));
       const occupied = houseMembers.filter((member) => member.is_occupied).length;
       const card = createMembersHouseCard(
         code,
         house.name || houseNames[code],
         "CASA DO CLÃ",
         "10 vagas + 1 gerente",
-        occupied + "/10 vagas ocupadas"
+        occupied + "/10 vagas ocupadas",
+        "Fama da casa: " + formatFame(houseFame)
       );
       card.style.setProperty("--house-outline", ["#041365", "#01080b", "#f1ff00", "#ff0000"][index]);
       membersHouseGrid.appendChild(card);
@@ -180,6 +221,7 @@
       (member) => member.slot_type === "special" && Number(member.slot_number) >= 41 && Number(member.slot_number) <= 45
     );
     const occupiedRotating = rotatingSlots.filter((member) => member.is_occupied).length;
+    const rotatingFame = sumOccupiedFame(rotatingSlots);
     const owner = members.find((member) => Number(member.slot_number) === 50);
     const ownerName = owner && owner.nickname ? owner.nickname : "Proprietário do clã";
     const rotatingCard = createMembersHouseCard(
@@ -187,15 +229,37 @@
       "Minha área",
       "ÁREA DO PROPRIETÁRIO",
       "Rotativos · 5 vagas especiais",
-      "Responsável: " + ownerName + " · " + occupiedRotating + "/5 ocupadas"
+      "Responsável: " + ownerName + " · " + occupiedRotating + "/5 ocupadas",
+      "Fama dos rotativos: " + formatFame(rotatingFame)
     );
     rotatingCard.style.setProperty("--house-outline", "#9ca3af");
     membersHouseGrid.appendChild(rotatingCard);
   }
 
-  function createMemberSlotRow(slotNumber, member, roleLabel) {
+  function createMemberSlotRow(slotNumber, member, roleLabel, photoCode) {
     const row = document.createElement("article");
     row.className = "members-slot-row" + (roleLabel === "Gerente" ? " is-manager" : "");
+
+    const photo = document.createElement("div");
+    photo.className = "members-slot-photo-wrap";
+
+    const placeholder = document.createElement("span");
+    placeholder.className = "members-slot-photo-placeholder";
+    placeholder.textContent = "FOTO";
+
+    const image = document.createElement("img");
+    image.className = "members-slot-photo";
+    image.alt = member && member.nickname
+      ? "Foto de " + member.nickname
+      : "Foto da vaga " + padSlot(slotNumber);
+    image.loading = "lazy";
+    image.src = "./fotos/" + photoCode + "_" + slotNumber + ".png";
+    image.addEventListener("error", () => {
+      image.hidden = true;
+      placeholder.hidden = false;
+    }, { once: true });
+    placeholder.hidden = true;
+    photo.append(image, placeholder);
 
     const number = document.createElement("span");
     number.className = "members-slot-number";
@@ -212,13 +276,17 @@
 
     const role = document.createElement("span");
     role.textContent = roleLabel + (member && member.slot_label ? " · " + member.slot_label : "");
-    identity.append(name, role);
+
+    const fame = document.createElement("span");
+    fame.className = "members-slot-fame";
+    fame.textContent = "Fama: " + (occupied ? formatFame(member.fame) : "—");
+    identity.append(name, role, fame);
 
     const status = document.createElement("span");
     status.className = "members-slot-status " + (occupied ? "occupied" : "available");
     status.textContent = occupied ? "Ocupado" : "Disponível";
 
-    row.append(number, identity, status);
+    row.append(photo, number, identity, status);
     return row;
   }
 
@@ -238,13 +306,16 @@
       membersDetailTitle.textContent = "Minha área · Rotativos";
       const owner = members.find((member) => Number(member.slot_number) === 50);
       const ownerName = owner && owner.nickname ? owner.nickname : "Proprietário do clã";
-      membersDetailCaption.textContent = "5 vagas especiais para membros rotativos · Responsável: " + ownerName;
+      const rotatingSlots = members.filter(
+        (item) => item.slot_type === "special" && Number(item.slot_number) >= 41 && Number(item.slot_number) <= 45
+      );
+      membersDetailCaption.textContent = "5 vagas especiais · Fama total: " + formatFame(sumOccupiedFame(rotatingSlots)) + " · Responsável: " + ownerName;
 
       for (let slot = 41; slot <= 45; slot += 1) {
         const member = members.find(
           (item) => Number(item.slot_number) === slot && item.slot_type === "special"
         );
-        membersSlotList.appendChild(createMemberSlotRow(slot, member, "Rotativo"));
+        membersSlotList.appendChild(createMemberSlotRow(slot, member, "Rotativo", "rotativos"));
       }
     } else {
       const houseIndex = houseOrder.indexOf(code);
@@ -253,14 +324,15 @@
       const firstSlot = houseIndex * 10 + 1;
       const managerSlot = 46 + houseIndex;
 
+      const houseRoster = getHouseRoster(code, house);
       membersDetailTitle.textContent = houseName;
-      membersDetailCaption.textContent = "10 vagas de membros e 1 posição de gerente";
+      membersDetailCaption.textContent = "10 vagas de membros e 1 posição de gerente · Fama total: " + formatFame(sumOccupiedFame(houseRoster));
 
       for (let slot = firstSlot; slot < firstSlot + 10; slot += 1) {
         const member = members.find(
           (item) => Number(item.slot_number) === slot && item.slot_type === "member"
         );
-        membersSlotList.appendChild(createMemberSlotRow(slot, member, "Membro"));
+        membersSlotList.appendChild(createMemberSlotRow(slot, member, "Membro", code));
       }
 
       const manager = members.find(
@@ -268,7 +340,7 @@
           ((house && item.house_id === house.id) || Number(item.slot_number) === managerSlot)
       );
       const actualManagerSlot = manager ? Number(manager.slot_number) : managerSlot;
-      membersSlotList.appendChild(createMemberSlotRow(actualManagerSlot, manager, "Gerente"));
+      membersSlotList.appendChild(createMemberSlotRow(actualManagerSlot, manager, "Gerente", code));
     }
 
     membersDetailPanel.hidden = false;
